@@ -10,19 +10,21 @@
 #include <ros/ros.h>
 
 #include "std_msgs/Int16MultiArray.h"
-#include "geometry_msgs/Vector3.h"
+#include "sbg_driver/SbgEkfEuler.h"
+#include "sbg_driver/SbgGpsPos.h"
 
-void gpsPosCallback(const geometry_msgs::Vector3::ConstPtr &msg)
+void gpsPosCallback(const sbg_driver::SbgGpsPos::ConstPtr &msg)
 {
-    latitude = msg->x * pow(10, 6);
-    longitude = msg->y * pow(10, 6);
-    elevation = msg->z * pow(10, 2);
+    latitude = msg->latitude * pow(10, 6);
+    longitude = msg->longitude * pow(10, 6);
+    elevation = msg->altitude * pow(10, 2);
 }
 
-void ekfEulerCallback(const geometry_msgs::Vector3::ConstPtr &msg)
+void ekfEulerCallback(const sbg_driver::SbgEkfEuler::ConstPtr &msg)
 {
-    heading = msg->z * pow(10, 2);
+    heading = msg->angle.z * pow(10, 2);
 }
+
 void canRecordCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
 {
     velocity = (msg->data[5] / 3600) * pow(10, 5);
@@ -214,8 +216,8 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::AsyncSpinner spinner(1);
 
-    ros::Subscriber sub_gps_pos = n.subscribe("/gps_pos", 100, gpsPosCallback);
-    ros::Subscriber sub_ekf_euler = n.subscribe("/ekf_euler", 100, ekfEulerCallback);
+    ros::Subscriber sub_gps_pos = n.subscribe("/sbg/gps_pos", 100, gpsPosCallback);
+    ros::Subscriber sub_ekf_euler = n.subscribe("/sbg/ekf_euler", 100, ekfEulerCallback);
     ros::Subscriber sub_can_record = n.subscribe("/can_record", 100, canRecordCallback);
 
     latitude = 0;

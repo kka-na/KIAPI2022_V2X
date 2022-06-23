@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(v2x_parser LANGUAGES CXX)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs genmsg)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sbg_driver genmsg)
 find_package(json-c CONFIG)
 
 catkin_package(

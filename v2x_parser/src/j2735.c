@@ -94,7 +94,7 @@ void parse_spat(SPAT_t *spat)
     gettimeofday(&tv, NULL);
     char filename_spat[512]; // = "/home/kana/Documents/Project/KIAPI/v2x_parse/json/spat.json";
     long sec_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-    sprintf(filename_spat, "/home/kana/catkin_ws/src/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
+    sprintf(filename_spat, "/home/kana/catkin_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
     json_object *SPAT = json_object_new_object();
 
     // printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
