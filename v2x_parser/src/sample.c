@@ -212,7 +212,7 @@ int main(int argc, char **argv)
     int storedSize = 0, uperSize;
     unsigned long long txPvd = get_clock_time();
 
-    ros::init(argc, argv, "listener");
+    ros::init(argc, argv, "v2x_parser");
     ros::NodeHandle n;
     ros::AsyncSpinner spinner(1);
 

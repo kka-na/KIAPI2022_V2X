@@ -2,13 +2,12 @@
 #define __OBU_MSG_H__
 
 #include <unistd.h>
-#include <stdint.h>  
 
-#define DEVICE_ID_SIZE 3 
+#define DEVICE_ID_SIZE 3
 #define MSG_ENDPOINT 0x0D0A
 
-
-enum MessageType{
+enum MessageType
+{
 
     MISSION_LIST_STAGE1 = 0x341A,
     MISSION_LIST_STAGE2 = 0x341B,
@@ -17,44 +16,48 @@ enum MessageType{
     ITEM_ACK = 0x341D
 
 };
-enum RequestType{
+enum RequestType
+{
 
     REQ_SELECT_MISSION = 0x01,
     REQ_START_POSITION = 0x02,
-    REQ_END_POSITION= 0x03,
-    REQ_ITEM= 0x04,
+    REQ_END_POSITION = 0x03,
+    REQ_ITEM = 0x04,
 
 };
 
-enum ResponseType{
-    
+enum ResponseType
+{
+
     RES_SUCCESS = 0x00
 
 };
 
+enum ItemType
+{
 
-enum ItemType{
+    ITEM_LAP_TIME_SUB = 0x01,
+    ITEM_LAP_TIME_ADD = 0x02,
+    ITEM_BOOST = 0x03,
 
-    ITEM_LAP_TIME_SUB    = 0x01,
-    ITEM_LAP_TIME_ADD   = 0x02,
-    ITEM_BOOST    = 0x03,
-    
 };
 
-#pragma pack(1)
-struct MsgHeader{
+#pragma pack(push, 1)
+struct MsgHeader
+{
 
     uint16_t message_type;
     uint8_t sequence;
     uint16_t payload_length;
     uint8_t device_type;
     uint8_t device_id[DEVICE_ID_SIZE];
-
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct MissionData{
-    
+#pragma pack(push, 1)
+struct MissionData
+{
+
     uint8_t mission_id;
     uint8_t status;
     uint16_t event_count;
@@ -64,37 +67,40 @@ struct MissionData{
     int32_t start_Lon;
     int32_t end_lat;
     int32_t end_lon;
-    
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct MissionRouteData{
-    
+#pragma pack(push, 1)
+struct MissionRouteData
+{
+
     uint8_t mission_route_id;
     uint8_t route_node_total_count;
     uint8_t route_node_index;
     uint8_t route_node_type;
     int32_t route_node_pos_lat;
     int32_t route_node_pos_lon;
-
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct MissionListStage1{
-    
+#pragma pack(push, 1)
+struct MissionListStage1
+{
+
     MsgHeader header;
     uint8_t mission_status;
     uint8_t mission_count;
     uint16_t mission_route_count;
-    
+
     MissionData *mission_list;
     MissionRouteData *mission_route_list;
-    
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct ItemData{
-    
+#pragma pack(push, 1)
+struct ItemData
+{
+
     uint8_t item_id;
     uint8_t item_type;
     uint8_t item_status;
@@ -104,23 +110,25 @@ struct ItemData{
     int32_t pos_lat;
     int32_t pos_long;
     uint8_t extend;
-
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct MissionListStage2{
-    
+#pragma pack(push, 1)
+struct MissionListStage2
+{
+
     MsgHeader header;
     uint8_t mission_status;
     uint8_t item_count;
-    
+
     ItemData *item_list;
-    
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct Request{
-    
+#pragma pack(push, 1)
+struct Request
+{
+
     MsgHeader header;
     uint8_t mission_id;
     uint8_t request;
@@ -128,12 +136,13 @@ struct Request{
     char description[10];
     char temporary[20];
     uint16_t end_point;
-
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct Request_Ack{
-    
+#pragma pack(push, 1)
+struct Request_Ack
+{
+
     MsgHeader header;
     uint8_t mission_id;
     uint8_t request;
@@ -141,12 +150,13 @@ struct Request_Ack{
     char description[10];
     char temporary[20];
     uint16_t end_point;
-
 };
+#pragma pack(pop)
 
-#pragma pack(1)
-struct Item_Ack{
-    
+#pragma pack(push, 1)
+struct Item_Ack
+{
+
     MsgHeader header;
     uint8_t mission_id;
     uint8_t request;
@@ -154,6 +164,7 @@ struct Item_Ack{
     char description[10];
     char temporary[20];
     uint16_t end_point;
-
 };
+#pragma pack(pop)
+
 #endif

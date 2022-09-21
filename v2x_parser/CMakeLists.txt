@@ -19,17 +19,19 @@ link_directories(
     include/j2735  
 ) 
 
-add_executable(
-    v2x_parser ./src/sample.c ./src/j2735.c  ./src/bsm.c ./src/pvd.c
+set(
+    SOURCES ./src/sample.c ./src/j2735.c  ./src/bsm.c ./src/pvd.c
 )
 
-set_source_files_properties( ./src/sample.c PROPERTIES LANGUAGE CXX )
-set_source_files_properties( ./src/pvd.c PROPERTIES LANGUAGE CXX )
-set_source_files_properties( ./src/bsm.c PROPERTIES LANGUAGE CXX )
-set_source_files_properties( ./src/j2735.c PROPERTIES LANGUAGE CXX )
+add_executable(
+    v2x_parser ${SOURCES}
+)
 
-set_target_properties(v2x_parser PROPERTIES OUTPUT_NAME v2x_parser PREFIX "")
+set_source_files_properties( ${SOURCES} PROPERTIES LANGUAGE CXX )
 
 target_link_libraries(
     v2x_parser ${catkin_LIBRARIES} asncodec json-c
 )
+
+
+# set_target_properties(v2x_parser PROPERTIES OUTPUT_NAME v2x_parser PREFIX "")
