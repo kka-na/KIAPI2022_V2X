@@ -37,11 +37,12 @@ private:
     void PublishMissionStage1(MissionListStage1 *);
     void PublishStage1State(int *);
     bool SubscribeArriveInfo(int);
-    static void arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg);
+    void arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg);
 
 private:
     ros::Publisher mission_stage1_pub;
     ros::Publisher stage1_state_pub;
+    ros::Subscriber arrive_info_sub;
     int seq = 0;
     int stage1_state[3] = {0, 0, 0};
     int arrive_info[2] = {0, 0};

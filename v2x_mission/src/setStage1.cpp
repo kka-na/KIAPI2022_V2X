@@ -1,19 +1,10 @@
 #include "setStage1.h"
 
-static void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
-{
-    // std_msgs/Int16MultiArray/data
-    //  data[0] : Departure, if arrived == 1
-    //  data[1] : Destination, if arrived == 1
-    arrive_info[0] = msg->data[0];
-    arrive_info[1] = msg->data[1];
-}
-
 void SetStage1::SetROS(ros::NodeHandle n)
 {
     mission_stage1_pub = n.advertise<geometry_msgs::PoseArray>("/mission_stage1", 1000);
     stage1_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage1_state", 1000);
-    ros::Subscriber arrive_info_sub = n.subscribe("/arrive_info", 100, arriveInfoCallback);
+    arrive_info_sub = n.subscribe("/arrive_info", 100, &SetStage1::arriveInfoCallback, this);
 }
 
 int SetStage1::RecvMissionStage1(unsigned char *buf)
@@ -122,13 +113,15 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     return 0;
 }
 
-// FOR STAGE 1
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 int SetStage1::RecvRequestAck(unsigned char *buf)
 {
     Request_Ack msg = {
         0,
     };
-
     ParseRequestAck(&msg, buf);
     // PrintRequestAck(&msg);
 
@@ -137,37 +130,6 @@ int SetStage1::RecvRequestAck(unsigned char *buf)
     stage1_state[2] = (msg.request == RequestType::REQ_END_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
 
     return 0;
-}
-
-// FOR STAGE 1
-void SetStage1::ParseMissionStage1(MissionListStage1 *msg, unsigned char *buf)
-{
-    if (msg == nullptr)
-    {
-        printf("[ParseMissionStage1] fail : msg == nullptr\n");
-        return;
-    }
-
-    size_t copy_len_1 = sizeof(MissionListStage1) - sizeof(MissionListStage1::mission_list) - sizeof(MissionListStage1::mission_route_list);
-    memmove(msg, buf, copy_len_1);
-
-    size_t copy_len_2 = sizeof(MissionData) * msg->mission_count;
-    msg->mission_list = new MissionData[msg->mission_count];
-    memmove(msg->mission_list, &buf[copy_len_1], copy_len_2);
-
-    size_t copy_len_3 = sizeof(MissionRouteData) * msg->mission_route_count;
-    msg->mission_route_list = new MissionRouteData[msg->mission_route_count];
-    memmove(msg->mission_route_list, &buf[copy_len_1 + copy_len_2], copy_len_3);
-}
-
-void SetStage1::ParseRequestAck(Request_Ack *msg, unsigned char *buf)
-{
-    if (msg == nullptr)
-    {
-        printf("[ParseRequestAck] fail : msg == nullptr\n");
-        return;
-    }
-    memmove(msg, buf, sizeof(Request_Ack));
 }
 
 void SetStage1::SendRequest(unsigned char id, unsigned char req)
@@ -180,9 +142,9 @@ void SetStage1::SendRequest(unsigned char id, unsigned char req)
     msg.header.sequence = seq++;
     msg.header.payload_length = sizeof(Request) - sizeof(MsgHeader);
     msg.header.device_type = 0xCE;
-    msg.header.device_id[0] = 0x01; // team id
-    msg.header.device_id[1] = 0x02; // team id
-    msg.header.device_id[2] = 0x03; // team id
+    msg.header.device_id[0] = 0x24; // team id
+    msg.header.device_id[1] = 0x67; // team id
+    msg.header.device_id[2] = 0x06; // team id
 
     msg.mission_id = id;
     msg.request = req;
@@ -198,6 +160,10 @@ void SetStage1::SendRequest(unsigned char id, unsigned char req)
     else
         printf("[SendRequest] id : %d, req : %d, byte : %d\n", id, req, len);
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 struct by_index
 {
@@ -268,10 +234,55 @@ void SetStage1::PublishStage1State(int *state)
     stage1_state_pub.publish(arr);
 }
 
+void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
+{
+    // std_msgs/Int16MultiArray/data
+    //  data[0] : Departure, if arrived == 1
+    //  data[1] : Destination, if arrived == 1
+    arrive_info[0] = msg->data[0];
+    arrive_info[1] = msg->data[1];
+}
+
 bool SetStage1::SubscribeArriveInfo(int type)
 {
     return arrive_info[type - 1];
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+void SetStage1::ParseMissionStage1(MissionListStage1 *msg, unsigned char *buf)
+{
+    if (msg == nullptr)
+    {
+        printf("[ParseMissionStage1] fail : msg == nullptr\n");
+        return;
+    }
+
+    size_t copy_len_1 = sizeof(MissionListStage1) - sizeof(MissionListStage1::mission_list) - sizeof(MissionListStage1::mission_route_list);
+    memmove(msg, buf, copy_len_1);
+    size_t copy_len_2 = sizeof(MissionData) * msg->mission_count;
+    msg->mission_list = new MissionData[msg->mission_count];
+    memmove(msg->mission_list, &buf[copy_len_1], copy_len_2);
+    size_t copy_len_3 = sizeof(MissionRouteData) * msg->mission_route_count;
+    msg->mission_route_list = new MissionRouteData[msg->mission_route_count];
+    memmove(msg->mission_route_list, &buf[copy_len_1 + copy_len_2], copy_len_3);
+}
+
+void SetStage1::ParseRequestAck(Request_Ack *msg, unsigned char *buf)
+{
+    if (msg == nullptr)
+    {
+        printf("[ParseRequestAck] fail : msg == nullptr\n");
+        return;
+    }
+    memmove(msg, buf, sizeof(Request_Ack));
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void SetStage1::PrintMissionStage1(MissionListStage1 *msg)
 {

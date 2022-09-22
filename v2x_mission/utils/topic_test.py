@@ -10,7 +10,7 @@ class PubTest:
         self.arrive_info = Int16MultiArray()
 
     def publisher(self):
-        self.arrive_info.data = [0, 1]
+        self.arrive_info.data = [1, 0]
         self.pub_arrive_info.publish(self.arrive_info)
 
 

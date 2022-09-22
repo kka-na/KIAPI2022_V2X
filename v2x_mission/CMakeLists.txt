@@ -16,7 +16,7 @@ include_directories(
 )
 
 set(
-    SOURCES ./src/main.cpp ./src/setSocket.cpp ./src/setStage1.cpp
+    SOURCES ./src/main.cpp ./src/setSocket.cpp ./src/setStage1.cpp ./src/setStage2.cpp
 )
 add_executable(
     v2x_mission ${SOURCES}
