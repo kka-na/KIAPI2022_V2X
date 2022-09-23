@@ -2,6 +2,8 @@
 
 void SetStage2::SetROS(ros::NodeHandle n)
 {
+    mission_stage2_pub = n.advertise<geometry_msgs::PoseArray>("/stage2_mission", 1000);
+    stage2_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage2_state", 1000);
 }
 
 int SetStage2::RecvMissionStage2(unsigned char *buf)
@@ -12,11 +14,20 @@ int SetStage2::RecvMissionStage2(unsigned char *buf)
 
     ParseMissionStage2(&msg, buf);
     PrintMissionStage2(&msg);
+    PublishMissionStage2(&msg);
 
-    if (msg.item_list != nullptr)
+    if (stage2_state_set_cnt == 0)
     {
-        delete msg.item_list;
+        SetStage2State(&msg);
+        stage2_state_set_cnt = -1;
     }
+    else
+    {
+        stage2_state[0] = int(msg.mission_status);
+        PublishStage2State();
+    }
+    if (msg.item_list != nullptr)
+        delete msg.item_list;
     return 0;
 }
 
@@ -31,22 +42,84 @@ int SetStage2::RecvItemAck(unsigned char *buf)
 
     if (msg.request == RequestType::REQ_ITEM)
     {
-        if (msg.response == ItemType::ITEM_LAP_TIME_SUB)
+        if (msg.response == ItemType::ITEM_LAP_TIME_SUB || msg.response == ItemType::ITEM_LAP_TIME_ADD || msg.response == ItemType::ITEM_BOOST)
         {
-            printf("%d번 아이템 획득 : Lap time 감소\n", msg.mission_id);
-        }
-        if (msg.response == ItemType::ITEM_LAP_TIME_ADD)
-        {
-            printf("%d번 아이템 획득 : Lap time 증가\n", msg.mission_id);
-        }
-        if (msg.response == ItemType::ITEM_BOOST)
-        {
-            printf("%d번 아이템 획득 : 가속 주행\n", msg.mission_id);
+            stage2_state[msg.mission_id] = 1;
         }
     }
 
     return 0;
 }
+
+struct by_id
+{
+    bool operator()(ItemData &a, ItemData &b)
+    {
+        return a.item_id < b.item_id;
+    }
+};
+void SetStage2::PublishMissionStage2(MissionListStage2 *msg)
+{
+    if (msg == nullptr)
+    {
+        printf("[PublishMissionStage2] fail : msg == nullptr\n");
+        return;
+    }
+
+    geometry_msgs::PoseArray pose_array;
+    // geometry_msgs/PoseArray/poses/
+    // position.x : item id
+    // position.y : speed
+    // position.z : duration
+    // orientation.x : type
+    // orientation.y : extend
+    // orientation.z : latitude
+    // orientation.w : longitude
+
+    vector<ItemData> item_data;
+    for (int i = 0; i < item_count; i++)
+        item_data.push_back(msg->item_list[i]);
+    sort(item_data.begin(), item_data.end(), by_id());
+
+    pose_array.poses.resize(item_count);
+    for (int i = 0; i < item_count; i++)
+    {
+        geometry_msgs::Pose pose;
+        pose.position.x = int(item_data[i].item_id);
+        pose.position.y = int(item_data[i].speed);
+        pose.position.z = int(item_data[i].duration);
+        //[TYPE] 1: MINUS, 2:PLUS, 3:BOOSTER
+        pose.orientation.x = int(item_data[i].item_type);
+        pose.orientation.y = int(item_data[i].extend);
+        pose.orientation.z = float(float(item_data[i].pos_lat) / 10000000.0);
+        pose.orientation.w = float(float(item_data[i].pos_long) / 10000000.0);
+
+        pose_array.poses[i] = pose;
+    }
+    mission_stage2_pub.publish(pose_array);
+}
+
+void SetStage2::SetStage2State(MissionListStage2 *msg)
+{
+    cout << int(msg->item_count) << endl;
+    item_count = int(msg->item_count);
+    stage2_state = new int[item_count + 1]{0};
+}
+void SetStage2::PublishStage2State()
+{
+    std_msgs::Int16MultiArray arr;
+    // std_msgs/Int16MultiArray/data
+    //  data[0] : Mission Status
+    //  data[item_id] : Accepted
+    arr.data.resize(item_count + 1);
+    for (int i = 0; i < item_count + 1; i++)
+        arr.data[i] = stage2_state[i];
+    stage2_state_pub.publish(arr);
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void SetStage2::ParseMissionStage2(MissionListStage2 *msg, unsigned char *buf)
 {
@@ -58,7 +131,6 @@ void SetStage2::ParseMissionStage2(MissionListStage2 *msg, unsigned char *buf)
 
     size_t copy_len_1 = sizeof(MissionListStage2) - sizeof(MissionListStage2::item_list);
     memmove(msg, buf, copy_len_1);
-
     size_t copy_len_2 = sizeof(ItemData) * msg->item_count;
     msg->item_list = new ItemData[msg->item_count];
     memmove(msg->item_list, &buf[copy_len_1], copy_len_2);
@@ -73,6 +145,10 @@ void SetStage2::ParseItemAck(Item_Ack *msg, unsigned char *buf)
     }
     memmove(msg, buf, sizeof(Item_Ack));
 }
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 void SetStage2::PrintMissionStage2(MissionListStage2 *msg)
 {
@@ -129,4 +205,9 @@ void SetStage2::PrintItemAck(Item_Ack *msg)
     printf("\tdescription : %s\n", msg->description);
     printf("\ttemporary : %s\n", msg->temporary);
     printf("\tend_point : 0x%04X\n", msg->end_point);
+}
+
+SetStage2::~SetStage2()
+{
+    delete stage2_state;
 }

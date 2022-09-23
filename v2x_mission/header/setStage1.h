@@ -32,11 +32,11 @@ private:
     void ParseRequestAck(Request_Ack *, unsigned char *);
     void PrintMissionStage1(MissionListStage1 *);
     void PrintRequestAck(Request_Ack *);
+    void init();
 
     // ROS
     void PublishMissionStage1(MissionListStage1 *);
-    void PublishStage1State(int *);
-    bool SubscribeArriveInfo(int);
+    void PublishStage1State();
     void arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg);
 
 private:
@@ -44,8 +44,10 @@ private:
     ros::Publisher stage1_state_pub;
     ros::Subscriber arrive_info_sub;
     int seq = 0;
-    int stage1_state[3] = {0, 0, 0};
+    int stage1_state[4] = {0, 0, 0, 0};
     int arrive_info[2] = {0, 0};
+
+    int clear_cnt = 0;
 };
 
 #endif

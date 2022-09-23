@@ -23,6 +23,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "mission");
     ros::NodeHandle n;
     ros::Rate loop_rate(10);
+
     stg1.SetROS(n);
     stg2.SetROS(n);
 

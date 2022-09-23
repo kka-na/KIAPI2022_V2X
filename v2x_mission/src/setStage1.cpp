@@ -2,9 +2,22 @@
 
 void SetStage1::SetROS(ros::NodeHandle n)
 {
-    mission_stage1_pub = n.advertise<geometry_msgs::PoseArray>("/mission_stage1", 1000);
+    mission_stage1_pub = n.advertise<geometry_msgs::PoseArray>("/stage1_mission", 1000);
     stage1_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage1_state", 1000);
-    arrive_info_sub = n.subscribe("/arrive_info", 100, &SetStage1::arriveInfoCallback, this);
+    arrive_info_sub = n.subscribe("/arrive_info", 10, &SetStage1::arriveInfoCallback, this);
+}
+
+void SetStage1::init()
+{
+    cout << "Initialize" << endl;
+    for (int &i : stage1_state)
+    {
+        i = 0;
+    }
+    for (int &i : arrive_info)
+    {
+        i = 0;
+    }
 }
 
 int SetStage1::RecvMissionStage1(unsigned char *buf)
@@ -17,10 +30,10 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     ParseMissionStage1(&msg, buf);
     PrintMissionStage1(&msg);
     PublishMissionStage1(&msg);
-    PublishStage1State(stage1_state);
 
     unsigned char mission_id = msg.mission_list[MISSION_ID].mission_id;
-    // WAITING
+    stage1_state[0] = int(msg.mission_status);
+
     if (msg.mission_status == 0x00)
     {
         //[IF] selection available, mission_list[2] : Hard
@@ -33,20 +46,18 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     else if (msg.mission_status == 0x01)
     {
         //[IF] Mission Selection was Accepted,
-        if (stage1_state[0])
+        if (stage1_state[1])
         {
-            cout << "Go to Departure !" << endl;
-            if (SubscribeArriveInfo(1))
+            if (arrive_info[0])
             {
                 cout << "Arrived at Deaparture" << endl;
                 SendRequest(mission_id, RequestType::REQ_START_POSITION);
             }
         }
         //[IF] Arrive at Departure Position,
-        else if (stage1_state[1])
+        else if (stage1_state[2])
         {
-            cout << "Go to Destination !" << endl;
-            if (SubscribeArriveInfo(2))
+            if (arrive_info[1])
             {
                 cout << "Arrived at Destination" << endl;
                 SendRequest(mission_id, RequestType::REQ_END_POSITION);
@@ -62,48 +73,57 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     else if (msg.mission_status == 0x03)
     {
         //[IF] Arrive at Destination Position,
-        if (stage1_state[2])
+        if (stage1_state[3])
         {
             cout << "Stage1 Clear!" << endl;
+            clear_cnt += 1;
+            if (clear_cnt > 20)
+            {
+                clear_cnt = 0;
+                init();
+            }
         }
     }
+
     // TEST
     else
     {
         //[IF] selection available, mission_list[2] : Hard
         if (msg.mission_list[MISSION_ID].status == 0x00)
         {
-            cout << "Select Mission !" << endl;
             SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
         }
         // [IF] Mission Selection was Accepted,
-        else if (stage1_state[0])
+        else if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
-            cout << "Go to Departure !" << endl;
-            // MOVE
-            if (SubscribeArriveInfo(1))
+            if (arrive_info[0])
             {
                 cout << "Arrived at Deaparture" << endl;
                 SendRequest(mission_id, RequestType::REQ_START_POSITION);
             }
         }
         // [IF] Arrive at Departure Position,
-        else if (stage1_state[1])
+        else if (stage1_state[1] && stage1_state[2] && !stage1_state[3])
         {
-            cout << "Go to Destination !" << endl;
-            // MOVE
-            if (SubscribeArriveInfo(2))
+            if (arrive_info[1])
             {
                 cout << "Arrived at Destination" << endl;
                 SendRequest(mission_id, RequestType::REQ_END_POSITION);
             }
         }
-        //[IF] Arrive at Destination Position,
-        else if (stage1_state[2])
+        else if (stage1_state[1] && stage1_state[2] && stage1_state[3])
         {
-            cout << "Stage1 Clear!" << endl;
+            cout << "Stage1 Clear " << clear_cnt << endl;
+            clear_cnt += 1;
+            if (clear_cnt > 10)
+            {
+                clear_cnt = 0;
+                init();
+            }
         }
     }
+
+    PublishStage1State();
 
     if (msg.mission_list != nullptr)
         delete msg.mission_list;
@@ -124,11 +144,15 @@ int SetStage1::RecvRequestAck(unsigned char *buf)
     };
     ParseRequestAck(&msg, buf);
     // PrintRequestAck(&msg);
-
-    stage1_state[0] = (msg.request == RequestType::REQ_SELECT_MISSION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
-    stage1_state[1] = (msg.request == RequestType::REQ_START_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
-    stage1_state[2] = (msg.request == RequestType::REQ_END_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
-
+    // stage1_state[1] = (msg.request == RequestType::REQ_SELECT_MISSION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
+    // stage1_state[2] = (msg.request == RequestType::REQ_START_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
+    // stage1_state[3] = (msg.request == RequestType::REQ_END_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
+    if (msg.request == RequestType::REQ_SELECT_MISSION && msg.response == ResponseType::RES_SUCCESS)
+        stage1_state[1] = 1;
+    if (msg.request == RequestType::REQ_START_POSITION && msg.response == ResponseType::RES_SUCCESS)
+        stage1_state[2] = 1;
+    if (msg.request == RequestType::REQ_END_POSITION && msg.response == ResponseType::RES_SUCCESS)
+        stage1_state[3] = 1;
     return 0;
 }
 
@@ -155,10 +179,13 @@ void SetStage1::SendRequest(unsigned char id, unsigned char req)
     msg.end_point = 0x0D0A;
 
     int len = send(clnt_sock, (char *)&msg, sizeof(msg), 0);
-    if (len <= 0)
-        printf("[SendRequest] fail send\n");
-    else
-        printf("[SendRequest] id : %d, req : %d, byte : %d\n", id, req, len);
+    if (DISPLAY_PACKET)
+    {
+        if (len <= 0)
+            printf("[SendRequest] fail send\n");
+        else
+            printf("[SendRequest] id : %d, req : %d, byte : %d\n", id, req, len);
+    }
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -183,11 +210,10 @@ void SetStage1::PublishMissionStage1(MissionListStage1 *msg)
 
     geometry_msgs::PoseArray pose_array;
     // geometry_msgs/PoseArray/poses/
-    // position.x : prediction distance
-    // orientation.x : index
-    // orientation.y : latitude
-    // orientation.z : longitude
-    // orientation.w : type
+    // orientation.x : type
+    // orientation.y : index
+    // orientation.z : latitude
+    // orientation.w : longitude
 
     int route_data_count = 2;
     vector<MissionRouteData> mission_route_data;
@@ -208,28 +234,28 @@ void SetStage1::PublishMissionStage1(MissionListStage1 *msg)
     for (int i = 0; i < route_data_count; i++)
     {
         geometry_msgs::Pose pose;
-        pose.position.x = int(msg->mission_list[MISSION_ID].distance);
-        pose.orientation.x = int(mission_route_data[i].route_node_index);
-        pose.orientation.y = float(float(mission_route_data[i].route_node_pos_lat) / 10000000.0);
-        pose.orientation.z = float(float(mission_route_data[i].route_node_pos_lon) / 10000000.0);
         //[TYPE] 0: NODE, 1 : DEPARTURE, 2 : DESTINATION
-        pose.orientation.w = int(mission_route_data[i].route_node_type);
+        pose.orientation.x = int(mission_route_data[i].route_node_type);
+        pose.orientation.y = int(mission_route_data[i].route_node_index);
+        pose.orientation.z = float(float(mission_route_data[i].route_node_pos_lat) / 10000000.0);
+        pose.orientation.w = float(float(mission_route_data[i].route_node_pos_lon) / 10000000.0);
         pose_array.poses[i] = pose;
     }
     mission_stage1_pub.publish(pose_array);
 }
 
-void SetStage1::PublishStage1State(int *state)
+void SetStage1::PublishStage1State()
 {
     std_msgs::Int16MultiArray arr;
     // std_msgs/Int16MultiArray/data
-    //  data[0] : Selection Accepted
-    //  data[1] : Departure Accepted
-    //  data[2] : Destination Accepted
-    arr.data.resize(3);
-    for (int i = 0; i < 3; i++)
+    //  data[0] : Mission Status
+    //  data[1] : Selection Accepted
+    //  data[2] : Departure Accepted
+    //  data[31] : Destination Accepted
+    arr.data.resize(4);
+    for (int i = 0; i < 4; i++)
     {
-        arr.data[i] = state[i];
+        arr.data[i] = stage1_state[i];
     }
     stage1_state_pub.publish(arr);
 }
@@ -241,11 +267,6 @@ void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &ms
     //  data[1] : Destination, if arrived == 1
     arrive_info[0] = msg->data[0];
     arrive_info[1] = msg->data[1];
-}
-
-bool SetStage1::SubscribeArriveInfo(int type)
-{
-    return arrive_info[type - 1];
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
