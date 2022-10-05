@@ -1,6 +1,4 @@
-# V2X
-
-KIAPI2022 : V2X Parser
+# V2X Parser
 
 JSON Parsing and Writting with C for V2X PVD, SPaT Message Logging.
 

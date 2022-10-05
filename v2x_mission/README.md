@@ -1,6 +1,4 @@
-# V2X
-
-KIAPI2022 : V2X Mission
+# V2X Mission
 
 V2X Mission protocol integration with ROS 
 
