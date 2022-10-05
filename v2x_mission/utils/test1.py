@@ -5,9 +5,9 @@ from std_msgs.msg import Int16MultiArray
 from geometry_msgs.msg import PoseArray
 
 
-class Test:
+class Test1:
     def __init__(self):
-        rospy.init_node('Test')
+        rospy.init_node('Test1')
 
         self.arrive_info_pub = rospy.Publisher(
             '/arrive_info', Int16MultiArray, queue_size=10)
@@ -39,7 +39,7 @@ class Test:
             if self.stage1_state[0] == 0:
                 print("[STATUS]WAITING")
                 phase1, phase2 = self.doPlanning()
-            elif self.stage1_state[0] == 1 or self.stage1_state[0] == 5:  # 5 is test
+            elif self.stage1_state[0] == 1 or self.stage1_state[0] == 4:  # 5 is test
                 phase1, phase2 = self.doPlanning()
                 if(self.stage1_state[1] and not self.stage1_state[2] and not self.stage1_state[3]):
                     print("[STATUS]MISSION ACCEPTED")
@@ -91,7 +91,7 @@ class Test:
 
 
 if __name__ == '__main__':
-    t = Test()
+    t = Test1()
 
     try:
         th1 = Thread(target=t.set)

@@ -4,6 +4,7 @@ void SetStage1::SetROS(ros::NodeHandle n)
 {
     mission_stage1_pub = n.advertise<geometry_msgs::PoseArray>("/stage1_mission", 1000);
     stage1_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage1_state", 1000);
+
     arrive_info_sub = n.subscribe("/arrive_info", 10, &SetStage1::arriveInfoCallback, this);
 }
 
@@ -32,7 +33,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     PublishMissionStage1(&msg);
 
     unsigned char mission_id = msg.mission_list[MISSION_ID].mission_id;
-    stage1_state[0] = int(msg.mission_status);
+    stage1_state[0] = int(msg.mission_status); // 01234
 
     if (msg.mission_status == 0x00)
     {
@@ -77,7 +78,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
         {
             cout << "Stage1 Clear!" << endl;
             clear_cnt += 1;
-            if (clear_cnt > 20)
+            if (clear_cnt > 5)
             {
                 clear_cnt = 0;
                 init();
@@ -91,6 +92,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
         //[IF] selection available, mission_list[2] : Hard
         if (msg.mission_list[MISSION_ID].status == 0x00)
         {
+            cout << "Mission Selection" << endl;
             SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
         }
         // [IF] Mission Selection was Accepted,
@@ -113,9 +115,10 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
         }
         else if (stage1_state[1] && stage1_state[2] && stage1_state[3])
         {
-            cout << "Stage1 Clear " << clear_cnt << endl;
+            if (clear_cnt == 0)
+                cout << "Stage1 Clear" << endl;
             clear_cnt += 1;
-            if (clear_cnt > 10)
+            if (clear_cnt > 5)
             {
                 clear_cnt = 0;
                 init();
@@ -143,7 +146,7 @@ int SetStage1::RecvRequestAck(unsigned char *buf)
         0,
     };
     ParseRequestAck(&msg, buf);
-    // PrintRequestAck(&msg);
+    PrintRequestAck(&msg);
     // stage1_state[1] = (msg.request == RequestType::REQ_SELECT_MISSION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
     // stage1_state[2] = (msg.request == RequestType::REQ_START_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
     // stage1_state[3] = (msg.request == RequestType::REQ_END_POSITION && msg.response == ResponseType::RES_SUCCESS) ? 1 : 0;
@@ -251,7 +254,7 @@ void SetStage1::PublishStage1State()
     //  data[0] : Mission Status
     //  data[1] : Selection Accepted
     //  data[2] : Departure Accepted
-    //  data[31] : Destination Accepted
+    //  data[3] : Destination Accepted
     arr.data.resize(4);
     for (int i = 0; i < 4; i++)
     {

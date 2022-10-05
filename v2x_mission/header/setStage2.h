@@ -28,6 +28,7 @@ private:
     void ParseItemAck(Item_Ack *, unsigned char *);
     void PrintMissionStage2(MissionListStage2 *);
     void PrintItemAck(Item_Ack *);
+    void init();
     // ROS
     void PublishMissionStage2(MissionListStage2 *);
     void SetStage2State(MissionListStage2 *);
@@ -40,6 +41,7 @@ private:
     int *stage2_state;
     int stage2_state_set_cnt = 0;
     int item_count = 0;
+    int clear_cnt = 0;
 };
 
 #endif

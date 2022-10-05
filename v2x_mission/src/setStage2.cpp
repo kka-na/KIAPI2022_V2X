@@ -6,6 +6,23 @@ void SetStage2::SetROS(ros::NodeHandle n)
     stage2_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage2_state", 1000);
 }
 
+void SetStage2::init()
+{
+    cout << "Initialize" << endl;
+    stage2_state_set_cnt = 0;
+    delete stage2_state;
+}
+
+bool check(vector<int> array, int d)
+{
+    for (int &i : array)
+    {
+        if (i != d)
+            return false;
+    }
+    return true;
+}
+
 int SetStage2::RecvMissionStage2(unsigned char *buf)
 {
     MissionListStage2 msg = {
@@ -16,6 +33,8 @@ int SetStage2::RecvMissionStage2(unsigned char *buf)
     PrintMissionStage2(&msg);
     PublishMissionStage2(&msg);
 
+    vector<int> check_arr;
+
     if (stage2_state_set_cnt == 0)
     {
         SetStage2State(&msg);
@@ -24,6 +43,33 @@ int SetStage2::RecvMissionStage2(unsigned char *buf)
     else
     {
         stage2_state[0] = int(msg.mission_status);
+        if (msg.mission_status == 0x03)
+        {
+            cout << "Stage2 Clear!" << endl;
+            clear_cnt += 1;
+            if (clear_cnt > 5)
+            {
+                clear_cnt = 0;
+                init();
+            }
+        }
+        else
+        {
+            for (int i = 1; i < item_count; i++)
+            {
+                check_arr.push_back(stage2_state[i]);
+            }
+            if (check(check_arr, 1))
+            {
+                cout << "Stage2 Clear!" << endl;
+                clear_cnt += 1;
+                if (clear_cnt > 5)
+                {
+                    clear_cnt = 0;
+                    init();
+                }
+            }
+        }
         PublishStage2State();
     }
     if (msg.item_list != nullptr)
@@ -101,7 +147,6 @@ void SetStage2::PublishMissionStage2(MissionListStage2 *msg)
 
 void SetStage2::SetStage2State(MissionListStage2 *msg)
 {
-    cout << int(msg->item_count) << endl;
     item_count = int(msg->item_count);
     stage2_state = new int[item_count + 1]{0};
 }

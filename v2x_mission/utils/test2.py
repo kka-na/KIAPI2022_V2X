@@ -2,56 +2,58 @@ from threading import Thread
 import rospy
 from std_msgs.msg import Int16MultiArray
 from geometry_msgs.msg import PoseArray
+import time
 
 
-class Test:
+class Test2:
     def __init__(self):
-        rospy.init_node('Test')
+        rospy.init_node('Test2')
 
-        self.arrive_info_pub = rospy.Publisher(
-            '/arrive_info', Int16MultiArray, queue_size=1)
+        rospy.Subscriber('/stage2_mission', PoseArray,
+                         self.stage2_mission_callback)
+        rospy.Subscriber('/stage2_state', Int16MultiArray,
+                         self.stage2_state_callback)
 
-        rospy.Subscriber('/stage1_mission', PoseArray,
-                         self.stage1_mission_callback)
-        rospy.Subscriber('/stage1_state', Int16MultiArray,
-                         self.stage1_state_callback)
-        # rospy.Subscriber('/stage2_mission', PoseArray,
-        #                  self.stage2_mission_callback)
-        # rospy.Subscriber('/stage2_state', Int16MultiArray,
-        #                  self.stage2_state_callback)
-
-        self.arrive_info = [0, 0]
-        self.stage1_state = 0
-        self.stage1_mission = []
-
-        self.stage2_state = 0
+        self.stage2_state = []
         self.stage2_mission = []
 
-    def publisher(self):
-        arr = Int16MultiArray()
-        arr.data = self.arrive_info
-        self.arrive_info_pub.publish(arr)
+    def stage2_mission_callback(self, msg):
+        self.stage2_mission = msg.poses
 
-    def stage1_mission_callback(self, msg):
-        self.stage1_mission = msg.poses
-
-    def stage1_state_callback(self, msg):
-        self.stage1_state = msg.data[0]
-        print(msg.data[0])
+    def stage2_state_callback(self, msg):
+        self.stage2_state = msg.data
 
     def control(self):
-        if self.stage1_state == 1 or self.stage1_state == 5:
-            print("Start")
-            print(self.stage1_mission)
-        else:
-            print("Not Yet")
+        if(len(self.stage2_state) != 0):
+            phase = []
+            if self.stage2_state[0] == 1 or self.stage2_state[0] == 4:
+                print(self.stage2_state[1:])
+                if all(state == 0 for state in self.stage2_state[1:]):
+                    print("[STATUS]WAITING")
+                    phase = self.doPlanning()
+                elif all(state == 1 for state in self.stage2_state[1:]):
+                    print("[STATUS]FINISH")
+                else:
+                    print("[STATUS]STARTING")
+                    self.passItem(phase)
+            else:
+                print("Not Yet")
 
-    def set(self):
-        rate = rospy.Rate(10)
-        while not rospy.is_shutdown():
-            self.publisher()
-            rate.sleep()
-        rospy.spin()
+    def doPlanning(self):
+        phase = []
+        for item in self.stage2_mission:
+            phase.append(item)
+        return phase
+
+    def passItem(self, phase):
+        for item in phase:
+            if int(item.orientation.x) == 1:
+                print("[ITEM]LAP Time Reducing")
+            if int(item.orientation.x) == 2:
+                print("[ITEM]LAP Time Increasing")
+            if int(item.orientation.x) == 3:
+                print("[ITEM]Booster while {} sec ".format(item.position.z))
+            time.sleep(0.25)
 
     def update(self):
         rate = rospy.Rate(10)
@@ -62,13 +64,9 @@ class Test:
 
 
 if __name__ == '__main__':
-    t = Test()
+    t = Test2()
 
     try:
-        th1 = Thread(target=t.set)
-        th2 = Thread(target=t.update)
-
-        th1.start()
-        th2.start()
+        t.update()
     except rospy.ROSInternalException:
         pass
