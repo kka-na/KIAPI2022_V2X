@@ -1,6 +1,4 @@
-# V2X
-
-KIAPI : V2X Mission
+# V2X Parser
 
 JSON Parsing and Writting with C for V2X PVD, SPaT Message Logging.
 
