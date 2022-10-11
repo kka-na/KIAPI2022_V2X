@@ -77,19 +77,19 @@ int main(int argc, char **argv)
 
             if (header->message_type == MessageType::MISSION_LIST_STAGE1)
             {
-                // stg1.RecvMissionStage1(temp_buf);
+                stg1.RecvMissionStage1(temp_buf);
             }
             else if (header->message_type == MessageType::MISSION_LIST_STAGE2)
             {
-                stg2.RecvMissionStage2(temp_buf);
+                // stg2.RecvMissionStage2(temp_buf);
             }
-            else if (header->message_type == MessageType::REQUEST_ACK)
+            else if (header->message_type == MessageType::REQUEST_ACK || header->message_type == MessageType::NODE_ACK)
             {
-                // stg1.RecvRequestAck(temp_buf);
+                stg1.RecvRequestAck(temp_buf);
             }
             else if (header->message_type == MessageType::ITEM_ACK)
             {
-                stg2.RecvItemAck(temp_buf);
+                // stg2.RecvItemAck(temp_buf);
             }
             else
             {

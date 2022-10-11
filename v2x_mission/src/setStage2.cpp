@@ -115,7 +115,7 @@ void SetStage2::PublishMissionStage2(MissionListStage2 *msg)
     geometry_msgs::PoseArray pose_array;
     // geometry_msgs/PoseArray/poses/
     // position.x : item id
-    // position.y : speed
+    // position.y : speed or score
     // position.z : duration
     // orientation.x : type
     // orientation.y : extend
@@ -132,7 +132,11 @@ void SetStage2::PublishMissionStage2(MissionListStage2 *msg)
     {
         geometry_msgs::Pose pose;
         pose.position.x = int(item_data[i].item_id);
-        pose.position.y = int(item_data[i].speed);
+        if (!item_data[i].item_type == 3)
+            pose.position.y = int(item_data[i].score);
+        else
+            pose.position.y = int(item_data[i].speed); //<0 minus socre, >0 plus score
+
         pose.position.z = int(item_data[i].duration);
         //[TYPE] 1: MINUS, 2:PLUS, 3:BOOSTER
         pose.orientation.x = int(item_data[i].item_type);
