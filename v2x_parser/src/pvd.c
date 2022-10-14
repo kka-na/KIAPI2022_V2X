@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <json-c/json.h>
 
+#define LOGGING_PVD false
+
 int fill_j2735_pvd(MessageFrame_t *dst, long _latitude, long _longitude, long _elevation, long _heading, long _velocity, long _gear)
 {
     //  time
@@ -208,8 +210,11 @@ int fill_j2735_pvd(MessageFrame_t *dst, long _latitude, long _longitude, long _e
     json_object_object_add(snapshots, "thePosition", thePosition);
     json_object_object_add(PVD, "snapshots", snapshots);
 
-    json_object_to_file_ext(filename_pvd, json_object_get(PVD), JSON_C_TO_STRING_PRETTY);
+    if (LOGGING_PVD)
+    {
+        json_object_to_file_ext(filename_pvd, json_object_get(PVD), JSON_C_TO_STRING_PRETTY);
 
-    printf("PVD Logged\n");
+        printf("PVD Logged\n");
+    }
     return 0;
 }

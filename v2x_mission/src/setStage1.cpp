@@ -47,7 +47,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     else if (msg.mission_status == 0x01)
     {
         //[IF] Mission Selection was Accepted,
-        if (stage1_state[1])
+        if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
             if (arrive_info[0])
             {
@@ -56,7 +56,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
             }
         }
         //[IF] Arrive at Departure Position,
-        else if (stage1_state[2])
+        else if (stage1_state[1] && stage1_state[2] && !stage1_state[3])
         {
             if (arrive_info[1])
             {
@@ -74,7 +74,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     else if (msg.mission_status == 0x03)
     {
         //[IF] Arrive at Destination Position,
-        if (stage1_state[3])
+        if (stage1_state[1] && stage1_state[2] && stage1_state[3])
         {
             cout << "Stage1 Clear!" << endl;
             clear_cnt += 1;

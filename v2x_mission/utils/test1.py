@@ -52,7 +52,7 @@ class Test1:
                     self.arrive_info = [0, 0]
                 else:
                     print("[STATUS]STARTING")
-            elif(self.stage1_state[0] == 4):
+            elif(self.stage1_state[0] == 3):
                 print("[STATUS]FINISH")
             else:
                 print("Not Yet")

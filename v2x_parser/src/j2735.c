@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <json-c/json.h>
 
+#define LOGGING_SPAT false
+
 void print_hex(char *data, int len)
 {
     printf("HEX[%d] : ", len);
@@ -65,10 +67,16 @@ int decode_j2735_uper(MessageFrame_t *dst, char *src, int size)
 
 int parse_decoded_j2735(MessageFrame_t *msg)
 {
+    printf("Parse decode j2735\n");
     if (msg->messageId == DSRC_ID_SPAT)
     {
         SPAT_t *ptrSpat = &msg->value.choice.SPAT;
         parse_spat(ptrSpat);
+    }
+    else if (msg->messageId == DSRC_ID_MAP)
+    {
+        MapData_t *ptrMapData = &msg->value.choice.MapData;
+        parse_map(ptrMapData);
     }
     return 0;
 }
@@ -137,9 +145,34 @@ void parse_spat(SPAT_t *spat)
 
         // printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
     }
-    json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
+    if (LOGGING_SPAT)
+    {
+        json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
 
-    json_object_put(SPAT);
+        json_object_put(SPAT);
 
-    printf("SPAT Logged\n");
+        printf("SPAT Logged\n");
+    }
+}
+
+int parse_map(MapData_t *map)
+{
+    for (int i = 0; i < map->intersections->list.count; i++)
+    {
+        struct IntersectionGeometry *intersection = map->intersections->list.array[i];
+
+        for (int j = 0; j < intersection->laneSet.list.count; j++)
+        {
+            struct GenericLane *lane = intersection->laneSet.list.array[j];
+            for (int k = 0; k < lane->nodeList.choice.nodes.list.count; k++)
+            {
+                struct NodeXY *node = lane->nodeList.choice.nodes.list.array[k];
+                int offset1_x = node->delta.choice.node_XY1.x;
+                int offset1_y = node->delta.choice.node_XY1.y;
+                printf("Offset1 x : %d, y : %d \n", offset1_x, offset1_x);
+            }
+        }
+    }
+
+    return 0;
 }
