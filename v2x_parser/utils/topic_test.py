@@ -14,9 +14,14 @@ class PubTest:
         self.pub_can_record = rospy.Publisher(
             '/can_record', Int16MultiArray, queue_size=1)
 
+        self.pub_laneid = rospy.Publisher(
+            '/current_LaneID', Int16MultiArray, queue_size=1)
+
         self.gps_pos = SbgGpsPos()
         self.ekf_euler = SbgEkfEuler()
         self.can_record = Int16MultiArray()
+        
+        self.laneid = Int16MultiArray()
 
     def publisher(self):
         self.gps_pos.latitude = 37.450585
@@ -27,10 +32,13 @@ class PubTest:
         self.ekf_euler.angle.z = 30.300
         self.can_record.data = [0, 0, 0, 1, 0, 46]
 
+        self.laneid.data = {27}
+        
         self.pub_gps_pos.publish(self.gps_pos)
         self.pub_ekf_euler.publish(self.ekf_euler)
         self.pub_can_record.publish(self.can_record)
 
+        self.pub_laneid.publish(self.laneid)
 
 if __name__ == '__main__':
     pt = PubTest()

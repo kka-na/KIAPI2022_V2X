@@ -11,8 +11,9 @@
 #include "time.h"
 #include <stdbool.h>
 #include <json-c/json.h>
+#include <typeinfo>
 
-#define LOGGING_SPAT false
+int* parse_msg = new int[2] {100, 100};
 
 void print_hex(char *data, int len)
 {
@@ -45,43 +46,80 @@ int encode_j2735_uper(char *dst, unsigned short dstLen, MessageFrame_t *src)
     }
 }
 
-int decode_j2735_uper(MessageFrame_t *dst, char *src, int size)
+int *decode_j2735_uper(MessageFrame_t *dst, char *src, int size, unsigned long curLaneID)
 {
 
     int res = -1;
-
     MessageFrame_t *ptrMsg = NULL;
 
     asn_dec_rval_t ret = uper_decode(NULL,
                                      &asn_DEF_MessageFrame,
                                      (void **)&dst,
                                      src, size, 0, 0);
-    if (ret.code != RC_OK)
-        return res;
+    // if (ret.code != RC_OK)
+    //     return res;
 
     res = ret.consumed;
     // asn_fprint(stdout,&asn_DEF_MessageFrame,dst);
-    parse_decoded_j2735(dst);
-    return res;
+    parse_decoded_j2735(dst, curLaneID);
+    return parse_msg;
 }
 
-int parse_decoded_j2735(MessageFrame_t *msg)
+int parse_decoded_j2735(MessageFrame_t *msg, unsigned long curLaneID)
 {
-    printf("Parse decode j2735\n");
+
     if (msg->messageId == DSRC_ID_SPAT)
     {
         SPAT_t *ptrSpat = &msg->value.choice.SPAT;
-        parse_spat(ptrSpat);
+        parse_spat(ptrSpat, curLaneID);
+
     }
-    else if (msg->messageId == DSRC_ID_MAP)
+
+    if (msg->messageId == DSRC_ID_MAP)
     {
         MapData_t *ptrMapData = &msg->value.choice.MapData;
-        parse_map(ptrMapData);
+        // parse_map(ptrMapData);
     }
     return 0;
 }
 
-void parse_spat(SPAT_t *spat)
+// int parse_map(MapData_t *map){
+
+//     IntersectionGeometry_t intersection_geometry = *map->intersections->list.array[0];
+//     char *name = (char *)intersection_geometry.name->buf;
+//     int id_id = intersection_geometry.id.id;
+//     int refPoint_lat = intersection_geometry.refPoint.lat;
+//     int refPoint_Long = intersection_geometry.refPoint.Long;
+
+
+//     printf("%s %d %d %d \n", name, id_id, refPoint_lat, refPoint_Long);
+
+//     for(int i = 0; i < intersection_geometry.laneSet.list.count; i++)
+//     {
+
+//         GenericLane_t LaneList = *intersection_geometry.laneSet.list.array[i];
+//         int laneID = LaneList.laneID;
+//         printf("LaneID : %d\n", laneID);
+
+//         printf("LaneID Count : %ld\n", LaneList.nodeList.choice.nodes.list.count);
+
+//         for(int j = 0; j < LaneList.nodeList.choice.nodes.list.count; j++)
+//         {
+//             Longitude_t offset_long = LaneList.nodeList.choice.nodes.list.array[j]->delta.choice.node_LatLon.lon;
+//             Latitude_t offset_lat = LaneList.nodeList.choice.nodes.list.array[j]->delta.choice.node_LatLon.lat; 
+
+//             printf("offset_lat : %ld, offset_long : %ld\n", offset_lat, offset_long);
+//             printf("lat : %ld, long : %ld\n", refPoint_lat + offset_lat, refPoint_Long + offset_long);
+        
+//         }
+     
+//     }
+
+
+//     return 0;
+// }
+
+int parse_spat(SPAT_t *spat, unsigned long curLaneID)
 {
     IntersectionState_t intersection = *spat->intersections.list.array[0];
     char *name = (char *)intersection.name->buf;
@@ -93,6 +131,9 @@ void parse_spat(SPAT_t *spat)
     int moy = intersection.moy[0];
     int timestamp = intersection.timeStamp[0];
 
+    // int parse_msg[2] = {100, 100};
+    // int* parse_msg = new int[2] {100, 100};
+
     // time
     time_t timer;
     struct tm *t;
@@ -102,10 +143,10 @@ void parse_spat(SPAT_t *spat)
     gettimeofday(&tv, NULL);
     char filename_spat[512]; // = "/home/kana/Documents/Project/KIAPI/v2x_parse/json/spat.json";
     long sec_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-    sprintf(filename_spat, "/home/kana/catkin_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
+    sprintf(filename_spat, "/home/inha/ros_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
     json_object *SPAT = json_object_new_object();
 
-    // printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
+    printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
 
     json_object_object_add(SPAT, "name", json_object_new_string(name));
     json_object *id = json_object_new_object();
@@ -143,36 +184,53 @@ void parse_spat(SPAT_t *spat)
         json_object_object_add(status, "maneuverAssistList", json_object_get(maneuverAssistList));
         json_object_object_add(SPAT, status_name, json_object_get(status));
 
-        // printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
-    }
-    if (LOGGING_SPAT)
-    {
-        json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
-
-        json_object_put(SPAT);
-
-        printf("SPAT Logged\n");
-    }
-}
-
-int parse_map(MapData_t *map)
-{
-    for (int i = 0; i < map->intersections->list.count; i++)
-    {
-        struct IntersectionGeometry *intersection = map->intersections->list.array[i];
-
-        for (int j = 0; j < intersection->laneSet.list.count; j++)
+        printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
+        
+        if (signalGroup == 13 and ((curLaneID == 64 and id_id == 1) or (curLaneID == 43 and id_id == 2)))
         {
-            struct GenericLane *lane = intersection->laneSet.list.array[j];
-            for (int k = 0; k < lane->nodeList.choice.nodes.list.count; k++)
-            {
-                struct NodeXY *node = lane->nodeList.choice.nodes.list.array[k];
-                int offset1_x = node->delta.choice.node_XY1.x;
-                int offset1_y = node->delta.choice.node_XY1.y;
-                printf("Offset1 x : %d, y : %d \n", offset1_x, offset1_x);
-            }
+        // state_time_speed_eventState, state_time_speed_timing_minEndTime
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
         }
+        else if (signalGroup == 16 and ((curLaneID == 61 and id_id == 1) or (curLaneID == 85 and id_id == 2) or (curLaneID == 34 and id_id == 3)))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
+        }
+        else if (signalGroup == 17 and ((curLaneID == 80 and id_id == 1) or (curLaneID == 84 and id_id == 2)))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
+        }
+        else if (signalGroup == 19 and ((curLaneID == 82 and id_id == 2) or (curLaneID == 78 and id_id == 3)))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
+        }
+        else if (signalGroup == 22 and ((curLaneID == 42 and id_id == 1) or (curLaneID == 27 and id_id == 2)))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
+        }
+        else if (signalGroup == 23 and ((curLaneID == 83 and id_id == 1) or (curLaneID == 86 and id_id == 2)))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            break;
+        }
+
     }
 
+    json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
+
+    json_object_put(SPAT);
+
+    // printf("SPAT Logged\n");
+    
     return 0;
 }

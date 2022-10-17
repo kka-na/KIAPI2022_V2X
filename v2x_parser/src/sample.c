@@ -8,27 +8,38 @@
 #include "sample.h"
 #include "math.h"
 #include <ros/ros.h>
-
 #include "std_msgs/Int16MultiArray.h"
+#include "std_msgs/Float32MultiArray.h"
+
 #include "sbg_driver/SbgEkfEuler.h"
 #include "sbg_driver/SbgGpsPos.h"
 
 void gpsPosCallback(const sbg_driver::SbgGpsPos::ConstPtr &msg)
 {
-    latitude = msg->latitude * pow(10, 6);
-    longitude = msg->longitude * pow(10, 6);
+    latitude = msg->latitude * pow(10, 7);
+    // latitude = msg->latitude * 10000000;
+    longitude = msg->longitude * pow(10, 7);
     elevation = msg->altitude * pow(10, 2);
 }
 
 void ekfEulerCallback(const sbg_driver::SbgEkfEuler::ConstPtr &msg)
 {
-    heading = msg->angle.z * pow(10, 2);
+    int yaw = msg->angle.z *(180/3.14);
+    int temp = (yaw <= 0 && yaw >= -180) ? yaw + 360 : yaw;
+    // int temp = msg->angle.z;
+    heading = int(temp / 0.0125);
 }
 
 void canRecordCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
 {
-    velocity = (msg->data[5] / 3600) * pow(10, 5);
+    // printf("%d\n",int((msg->data[5])/0.072));
+    velocity = int((msg->data[5])/0.072);
     gear = (int)(msg->data[3]);
+}
+
+void curLaneIDCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
+{
+    curLaneID = msg->data[0];
 }
 
 unsigned long long get_clock_time()
@@ -38,6 +49,25 @@ unsigned long long get_clock_time()
     uint64_t clock = ts.tv_sec * 1000 + (ts.tv_nsec / 1000000);
     return clock;
 }
+
+int signalstate(int eventState)
+{
+    int temp;
+    if (eventState == 2 or eventState == 3)
+    {
+        temp = 1;   // red
+    }
+    else if (eventState == 5 or eventState == 6 or eventState == 7)
+    {
+        temp = 2;   //green
+    }
+    else if (eventState == 8)
+    {
+        temp = 3;   //yellow
+    }
+
+    return temp;
+} 
 
 int connect_obu_uper_tcp(char *ip, unsigned short port)
 {
@@ -197,8 +227,7 @@ int tx_v2i_pvd(int sockFd, unsigned long long *time)
 
     if (encodedBits < 0) // 인코딩 실패로 전송이 불가능한 상태
         printf(" pvd failed ! \n");
-    return 0;
-
+        return 0;
     int byteLen = encodedBits / 8 + ((encodedBits % 8) ? 1 : 0);
 
     return request_tx_wave_obu(sockFd, uper, byteLen);
@@ -212,13 +241,16 @@ int main(int argc, char **argv)
     int storedSize = 0, uperSize;
     unsigned long long txPvd = get_clock_time();
 
-    ros::init(argc, argv, "v2x_parser");
+    ros::init(argc, argv, "listener");
     ros::NodeHandle n;
     ros::AsyncSpinner spinner(1);
 
     ros::Subscriber sub_gps_pos = n.subscribe("/sbg/gps_pos", 100, gpsPosCallback);
     ros::Subscriber sub_ekf_euler = n.subscribe("/sbg/ekf_euler", 100, ekfEulerCallback);
     ros::Subscriber sub_can_record = n.subscribe("/can_record", 100, canRecordCallback);
+    ros::Subscriber sub_cur_laneid = n.subscribe("/current_LaneID", 100, curLaneIDCallback);
+
+    ros::Publisher pub_spat_msg = n.advertise<std_msgs::Float32MultiArray>("/spat_msg", 100);
 
     latitude = 0;
     longitude = 0;
@@ -226,17 +258,20 @@ int main(int argc, char **argv)
     heading = 0;
     velocity = 0;
     gear = 0;
+    curLaneID = 0;    
     int a = 0;
-
+    int test;
     spinner.start();
+    int *parse_msg;
 
     while (ros::ok())
     {
+
         // 소켓이 연결되지 않은 경우(sockFd == -1) , OBU TCP 소켓 연결 시도
         if (sockFd < 0)
         {
-            // sockFd = connect_obu_uper_tcp("192.168.10.10", 23000);
-            sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);
+            sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
+            // sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
             storedSize = 0;
             if (sockFd < 0)
             {
@@ -248,6 +283,7 @@ int main(int argc, char **argv)
 
         // 소켓이 연결된 상태인 경우, OBU로부터 TCP 패킷 수신
         // WAVE 통신으로 수신된 데이터가 없을 경우, 수신되는 데이터 X
+
         if (((storedSize = receive_from_obu(sockFd,
                                             rxBuffer, OBU_RECEIVE_BUFFER_SIZE, storedSize,
                                             rxUperBuffer, MAX_UPER_SIZE, &uperSize)) < 0) ||
@@ -262,12 +298,33 @@ int main(int argc, char **argv)
 
         if (uperSize > 0)
         {
+
             // OBU로부터 수신된 WAVE 메시지가 존재할 경우, UPER 디코딩 -> J2735 메시지 파싱
             MessageFrame_t *msgFrame = NULL;
-            int test = decode_j2735_uper(msgFrame, rxUperBuffer, uperSize);
-            ASN_STRUCT_FREE(asn_DEF_MessageFrame, msgFrame);
-        }
+            parse_msg = decode_j2735_uper(msgFrame, rxUperBuffer, uperSize, curLaneID);
 
+            std_msgs::Float32MultiArray spat_msg;
+
+            // data[0] = eventState, data[1] = timing_minEndTime
+            spat_msg.data.resize(2);
+            spat_msg.data[0] = signalstate(parse_msg[0]);
+            // spat_msg.data[1] = parse_msg[1] / 10;
+            spat_msg.data[1] = parse_msg[1];
+            pub_spat_msg.publish(spat_msg);
+            
+            int temp;
+            if (temp != parse_msg[1])
+            {
+                printf("Received V2X Signal-------------------\n\n");
+                printf("Current Signal EventState : %d\n\n", parse_msg[0]);
+                printf("Current Signal timing_minEndTime : %d\n",parse_msg[1]);
+                temp = parse_msg[1];
+            }
+
+            ASN_STRUCT_FREE(asn_DEF_MessageFrame, msgFrame);
+
+        }
+   
         usleep(10000); // 1msec sleep
     }
     close(sockFd);

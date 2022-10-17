@@ -12,6 +12,8 @@
 
 #include <string.h>
 
+
+
 /**
  * @brief Binary 데이터 Hex 출력
  *
@@ -38,7 +40,7 @@ int encode_j2735_uper(char *dst, unsigned short dstLen, MessageFrame_t *src);
  * @param size  UPER 데이터 길이
  * @return int  디코딩 성공 유무
  */
-int decode_j2735_uper(MessageFrame_t *dst, char *src, int size);
+int *decode_j2735_uper(MessageFrame_t *dst, char *src, int size, unsigned long curLaneID);
 
 /**
  * @brief      디코딩된 MessageFrame 처리
@@ -46,7 +48,7 @@ int decode_j2735_uper(MessageFrame_t *dst, char *src, int size);
  * @param msg   MessageFrame Pointer
  * @return int  메시지 처리 성공 유무
  */
-int parse_decoded_j2735(MessageFrame_t *msg);
+int parse_decoded_j2735(MessageFrame_t *msg, unsigned long curLaneID);
 
 /**
  * @brief  PVD 메시지 생성
@@ -78,8 +80,8 @@ int parse_map(MapData_t *map);
  * @param spat
  * @return int
  */
-void parse_spat(SPAT_t *spat);
-// int parse_spat(SPAT_t *spat);
+// int *parse_spat(SPAT_t *spat, unsigned long curLaneID);
+int parse_spat(SPAT_t *spat, unsigned long curLaneID);
 
 /**
  * @brief  수신된 BSM 메시지 처리

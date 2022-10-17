@@ -124,3 +124,4 @@ unsigned long elevation;
 unsigned long heading;
 unsigned long velocity;
 unsigned long gear;
+unsigned long curLaneID;
