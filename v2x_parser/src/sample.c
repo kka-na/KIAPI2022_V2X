@@ -274,7 +274,6 @@ int main(int argc, char **argv)
                 continue;
             }
         }
-
         // 소켓이 연결된 상태인 경우, OBU로부터 TCP 패킷 수신
         // WAVE 통신으로 수신된 데이터가 없을 경우, 수신되는 데이터 X
 
