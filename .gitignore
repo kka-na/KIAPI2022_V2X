@@ -55,6 +55,10 @@ coverage.xml
 *.mo
 *.pot
 
+#log ignore
+v2x_paser/log
+**/log/
+
 # Django stuff:
 *.log
 local_settings.py

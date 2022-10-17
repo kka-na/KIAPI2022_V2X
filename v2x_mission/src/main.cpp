@@ -9,7 +9,7 @@
 #include "ros/ros.h"
 
 #define MAX_READ_LEN 4096
-#define MAX_BUFFER_LEN 1000000
+#define MAX_BUFFER_LEN 1000000 
 
 int main(int argc, char **argv)
 {
