@@ -169,7 +169,7 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
         bool maneuverAssistList_pedBicycleDetect_bool = movement.maneuverAssistList->list.array[0]->pedBicycleDetect;
 
         char *status_name;
-        sprintf(status_name, "states%d", j);
+        //sprintf(status_name, "states%d", j);
 
         json_object *status = json_object_new_object();
         json_object_object_add(status, "movementName", json_object_new_string(movementName));
@@ -184,40 +184,40 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
         json_object_object_add(status, "maneuverAssistList", json_object_get(maneuverAssistList));
         json_object_object_add(SPAT, status_name, json_object_get(status));
 
-        printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
+        //printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
         
-        if (signalGroup == 13 and ((curLaneID == 64 and id_id == 1) or (curLaneID == 43 and id_id == 2)))
+        if (signalGroup == 13 && ((curLaneID == 64 && id_id == 1) || (curLaneID == 43 && id_id == 2)))
         {
         // state_time_speed_eventState, state_time_speed_timing_minEndTime
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
             break;
         }
-        else if (signalGroup == 16 and ((curLaneID == 61 and id_id == 1) or (curLaneID == 85 and id_id == 2) or (curLaneID == 34 and id_id == 3)))
+        else if (signalGroup == 16 && ((curLaneID == 61 && id_id == 1) || (curLaneID == 85 && id_id == 2) || (curLaneID == 34 && id_id == 3)))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
             break;
         }
-        else if (signalGroup == 17 and ((curLaneID == 80 and id_id == 1) or (curLaneID == 84 and id_id == 2)))
+        else if (signalGroup == 17 && ((curLaneID == 80 && id_id == 1) || (curLaneID == 84 && id_id == 2)))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
             break;
         }
-        else if (signalGroup == 19 and ((curLaneID == 82 and id_id == 2) or (curLaneID == 78 and id_id == 3)))
+        else if (signalGroup == 19 && ((curLaneID == 82 && id_id == 2) || (curLaneID == 78 && id_id == 3)))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
             break;
         }
-        else if (signalGroup == 22 and ((curLaneID == 42 and id_id == 1) or (curLaneID == 27 and id_id == 2)))
+        else if (signalGroup == 22 && ((curLaneID == 42 && id_id == 1) || (curLaneID == 27 && id_id == 2)))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
             break;
         }
-        else if (signalGroup == 23 and ((curLaneID == 83 and id_id == 1) or (curLaneID == 86 and id_id == 2)))
+        else if (signalGroup == 23 && ((curLaneID == 83 && id_id == 1) || (curLaneID == 86 && id_id == 2)))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;

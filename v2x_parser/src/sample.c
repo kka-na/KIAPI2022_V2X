@@ -17,7 +17,6 @@
 void gpsPosCallback(const sbg_driver::SbgGpsPos::ConstPtr &msg)
 {
     latitude = msg->latitude * pow(10, 7);
-    // latitude = msg->latitude * 10000000;
     longitude = msg->longitude * pow(10, 7);
     elevation = msg->altitude * pow(10, 2);
 }
@@ -26,13 +25,11 @@ void ekfEulerCallback(const sbg_driver::SbgEkfEuler::ConstPtr &msg)
 {
     int yaw = msg->angle.z *(180/3.14);
     int temp = (yaw <= 0 && yaw >= -180) ? yaw + 360 : yaw;
-    // int temp = msg->angle.z;
     heading = int(temp / 0.0125);
 }
 
 void canRecordCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
 {
-    // printf("%d\n",int((msg->data[5])/0.072));
     velocity = int((msg->data[5])/0.072);
     gear = (int)(msg->data[3]);
 }
@@ -55,7 +52,7 @@ int signalstate(int eventState)
     int temp;
     if (eventState == 2 or eventState == 3)
     {
-        temp = 1;   // red
+        temp = 0;   // red
     }
     else if (eventState == 5 or eventState == 6 or eventState == 7)
     {
@@ -63,7 +60,7 @@ int signalstate(int eventState)
     }
     else if (eventState == 8)
     {
-        temp = 3;   //yellow
+        temp = 1;   //yellow
     }
 
     return temp;
@@ -103,7 +100,6 @@ int connect_obu_uper_tcp(char *ip, unsigned short port)
     int flag = fcntl(sockFd, F_GETFL, 0);
     fcntl(sockFd, F_SETFL, flag | O_NONBLOCK);
 
-    // printf("DEBUG : OBU TCP [%s:%d] Connected \n",ip,port); // TCP 접속 완료
 
     return sockFd;
 }
@@ -164,12 +160,9 @@ int receive_from_obu(int sockFd, char *buffer, unsigned short bufferSize, int st
     if (header.messageType == 0x3411)
     {
         struct TxWaveUperResultPayload *payload = (struct TxWaveUperResultPayload *)uperBuffer;
-        // printf("RX - \"TX_WAVE_UPER_ACK\" [%d/%d/%d]\n",payload->txWaveUperSeq,payload->resultCode,payload->size);
         *uperRes = 0;
     }
     else
-        // printf("RX - \"RX_WAVE_UPER\" [%d] \n",header.payloadLen);
-
         return storedSize;
 }
 
@@ -225,9 +218,10 @@ int tx_v2i_pvd(int sockFd, unsigned long long *time)
 
     int encodedBits = encode_j2735_uper(uper, MAX_UPER_SIZE, &msg);
 
-    if (encodedBits < 0) // 인코딩 실패로 전송이 불가능한 상태
+    if (encodedBits < 0){// 인코딩 실패로 전송이 불가능한 상태
         printf(" pvd failed ! \n");
         return 0;
+    }
     int byteLen = encodedBits / 8 + ((encodedBits % 8) ? 1 : 0);
 
     return request_tx_wave_obu(sockFd, uper, byteLen);
