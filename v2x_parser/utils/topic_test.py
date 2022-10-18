@@ -34,7 +34,7 @@ class PubTest:
         self.ekf_euler.angle.z = 30.300
         self.can_record.data = [0, 0, 0, 1, 0, 46]
 
-        self.laneid.data = {27}
+        self.laneid.data = {60}
         
         self.pub_gps_pos.publish(self.gps_pos)
         self.pub_ekf_euler.publish(self.ekf_euler)

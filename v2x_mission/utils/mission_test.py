@@ -20,7 +20,7 @@ class MissionTest:
         self.stage1_state = [4, 0, 0, 0]
 
         while not rospy.is_shutdown():
-            if(time.time()-start_time == 10):
+            if(time.time()-start_time > 10):
                 self.stage1_state = [4, 1, 0, 0]
             elif(self.stage1_state[1] and not self.stage1_state[2]and not self.stage1_state[3]):
                 if(self.arrive_info[0]):

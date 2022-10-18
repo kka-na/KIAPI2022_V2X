@@ -17,10 +17,10 @@ int* parse_msg = new int[2] {100, 100};
 
 void print_hex(char *data, int len)
 {
-    printf("HEX[%d] : ", len);
+    // printf("HEX[%d] : ", len);
     for (int i = 0; i < len; i++)
     {
-        printf("%02X", (data[i] & 0xFF));
+        // printf("%02X", (data[i] & 0xFF));
         continue;
     }
     printf("\n");
@@ -146,7 +146,7 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
     sprintf(filename_spat, "/home/inha/ros_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
     json_object *SPAT = json_object_new_object();
 
-    printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
+    // printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
 
     json_object_object_add(SPAT, "name", json_object_new_string(name));
     json_object *id = json_object_new_object();
@@ -184,47 +184,51 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
         json_object_object_add(status, "maneuverAssistList", json_object_get(maneuverAssistList));
         json_object_object_add(SPAT, status_name, json_object_get(status));
 
-        //printf("%s, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
-        
-        if (signalGroup == 13 && ((curLaneID == 64 && id_id == 1) || (curLaneID == 43 && id_id == 2)))
+        if (id_id ==1)
         {
-        // state_time_speed_eventState, state_time_speed_timing_minEndTime
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-        else if (signalGroup == 16 && ((curLaneID == 61 && id_id == 1) || (curLaneID == 85 && id_id == 2) || (curLaneID == 34 && id_id == 3)))
-        {
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-        else if (signalGroup == 17 && ((curLaneID == 80 && id_id == 1) || (curLaneID == 84 && id_id == 2)))
-        {
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-        else if (signalGroup == 19 && ((curLaneID == 82 && id_id == 2) || (curLaneID == 78 && id_id == 3)))
-        {
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-        else if (signalGroup == 22 && ((curLaneID == 42 && id_id == 1) || (curLaneID == 27 && id_id == 2)))
-        {
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-        else if (signalGroup == 23 && ((curLaneID == 83 && id_id == 1) || (curLaneID == 86 && id_id == 2)))
-        {
-            parse_msg[0] = state_time_speed_eventState;
-            parse_msg[1] = state_time_speed_timing_minEndTime;
-            break;
-        }
-
-    }
+            // printf("%d, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
+            
+            if (signalGroup == 13 && ((curLaneID == 61 && id_id == 1) || (curLaneID == 43 && id_id == 2)))
+            {
+            // state_time_speed_eventState, state_time_speed_timing_minEndTime
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+            }
+            else if (signalGroup == 16 && ((curLaneID == 58 && id_id == 1) || (curLaneID == 85 && id_id == 2) || (curLaneID == 34 && id_id == 3)))
+            {
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+                printf("%d, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
+            
+            }
+            else if (signalGroup == 17 && ((curLaneID == 76 && id_id == 1) || (curLaneID == 84 && id_id == 2)))
+            {
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+            }
+            else if (signalGroup == 19 && ((curLaneID == 60 && id_id == 1) || (curLaneID == 82 && id_id == 2) || (curLaneID == 78 && id_id == 3)))
+            {
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+            }
+            else if (signalGroup == 22 && ((curLaneID == 39 && id_id == 1) || (curLaneID == 27 && id_id == 2)))
+            {
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+            }
+            else if (signalGroup == 23 && ((curLaneID == 83 && id_id == 1) || (curLaneID == 86 && id_id == 2)))
+            {
+                parse_msg[0] = state_time_speed_eventState;
+                parse_msg[1] = state_time_speed_timing_minEndTime;
+                break;
+            }
+        }   
+     }
 
     json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
 

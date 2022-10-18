@@ -54,11 +54,11 @@ int signalstate(int eventState)
     {
         temp = 1;   // red
     }
-    else if (eventState == 5 or eventState == 6 or eventState == 7)
+    else if (eventState == 5 or eventState == 6)
     {
         temp = 2;   //green
     }
-    else if (eventState == 8)
+    else if (eventState == 7)
     {
         temp = 3;   //yellow
     }
