@@ -32,7 +32,20 @@ class MissionParse:
         phase1 = []
         phase2 = []
         phase = phase1
+        lat0 = 35.64588122580907
+        # lon0 = 128.40214778762413
+        # h0 = 47.256
+        node_info = {"type":0, "idx":1, "lat":35.64588122580907, "lng":128.40214778762413}
         for node in self.stage1_mission:
+            node_info["type"] = node.orientation.x
+            node_info["idx"] = node.orientation.y
+            node_info["lat"] = node.orientation.z
+            node_info["lng"] = node.orientation.w 
+            phase.append(node_info)
+            if(node.orientation.x == 1.0):
+                phase = phase2
+        return phase1, phase2
+
 
 
 if __name__ == '__main__':
