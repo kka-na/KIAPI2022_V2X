@@ -17,10 +17,10 @@ int* parse_msg = new int[2] {100, 100};
 
 void print_hex(char *data, int len)
 {
-    // printf("HEX[%d] : ", len);
+    printf("HEX[%d] : ", len);
     for (int i = 0; i < len; i++)
     {
-        // printf("%02X", (data[i] & 0xFF));
+        printf("%02X", (data[i] & 0xFF));
         continue;
     }
     printf("\n");
@@ -56,8 +56,8 @@ int *decode_j2735_uper(MessageFrame_t *dst, char *src, int size, unsigned long c
                                      &asn_DEF_MessageFrame,
                                      (void **)&dst,
                                      src, size, 0, 0);
-    // if (ret.code != RC_OK)
-    //     return res;
+    if (ret.code != RC_OK)
+        // return res;
 
     res = ret.consumed;
     // asn_fprint(stdout,&asn_DEF_MessageFrame,dst);
@@ -83,42 +83,6 @@ int parse_decoded_j2735(MessageFrame_t *msg, unsigned long curLaneID)
     return 0;
 }
 
-// int parse_map(MapData_t *map){
-
-//     IntersectionGeometry_t intersection_geometry = *map->intersections->list.array[0];
-//     char *name = (char *)intersection_geometry.name->buf;
-//     int id_id = intersection_geometry.id.id;
-//     int refPoint_lat = intersection_geometry.refPoint.lat;
-//     int refPoint_Long = intersection_geometry.refPoint.Long;
-
-
-//     printf("%s %d %d %d \n", name, id_id, refPoint_lat, refPoint_Long);
-
-//     for(int i = 0; i < intersection_geometry.laneSet.list.count; i++)
-//     {
-
-//         GenericLane_t LaneList = *intersection_geometry.laneSet.list.array[i];
-//         int laneID = LaneList.laneID;
-//         printf("LaneID : %d\n", laneID);
-
-//         printf("LaneID Count : %ld\n", LaneList.nodeList.choice.nodes.list.count);
-
-//         for(int j = 0; j < LaneList.nodeList.choice.nodes.list.count; j++)
-//         {
-//             Longitude_t offset_long = LaneList.nodeList.choice.nodes.list.array[j]->delta.choice.node_LatLon.lon;
-//             Latitude_t offset_lat = LaneList.nodeList.choice.nodes.list.array[j]->delta.choice.node_LatLon.lat; 
-
-//             printf("offset_lat : %ld, offset_long : %ld\n", offset_lat, offset_long);
-//             printf("lat : %ld, long : %ld\n", refPoint_lat + offset_lat, refPoint_Long + offset_long);
-        
-//         }
-     
-//     }
-
-
-//     return 0;
-// }
-
 int parse_spat(SPAT_t *spat, unsigned long curLaneID)
 {
     IntersectionState_t intersection = *spat->intersections.list.array[0];
@@ -131,9 +95,6 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
     int moy = intersection.moy[0];
     int timestamp = intersection.timeStamp[0];
 
-    // int parse_msg[2] = {100, 100};
-    // int* parse_msg = new int[2] {100, 100};
-
     // time
     time_t timer;
     struct tm *t;
@@ -143,10 +104,11 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
     gettimeofday(&tv, NULL);
     char filename_spat[512]; // = "/home/kana/Documents/Project/KIAPI/v2x_parse/json/spat.json";
     long sec_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-    sprintf(filename_spat, "/home/inha/ros_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
+    sprintf(filename_spat, "/home/cvlab/catkin_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
     json_object *SPAT = json_object_new_object();
 
-    // printf("%s, %d, %d, %d, %s, %d, %d\n", name, id_region, id_id, revision, _status, moy, timestamp);
+    // printf(" %d월 %d일 %dsec\n", t->tm_mon + 1, t->tm_mday, t->tm_sec);
+    printf(" %s\n", name);
 
     json_object_object_add(SPAT, "name", json_object_new_string(name));
     json_object *id = json_object_new_object();
@@ -184,53 +146,38 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
         json_object_object_add(status, "maneuverAssistList", json_object_get(maneuverAssistList));
         json_object_object_add(SPAT, status_name, json_object_get(status));
 
-        if (id_id ==1)
+        if(signalGroup == 13 && (((curLaneID == 61) && (id_id == 1)) || ((curLaneID == 40) && (id_id == 2)) || ((curLaneID) == 26 && (id_id == 3))))
         {
-            // printf("%d, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
-            
-            if (signalGroup == 13 && ((curLaneID == 61 && id_id == 1) || (curLaneID == 43 && id_id == 2)))
-            {
-            // state_time_speed_eventState, state_time_speed_timing_minEndTime
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-            }
-            else if (signalGroup == 16 && ((curLaneID == 58 && id_id == 1) || (curLaneID == 85 && id_id == 2) || (curLaneID == 34 && id_id == 3)))
-            {
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-                printf("%d, %s, %d, %d, %d, %d, %s\n", status_name, movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime, maneuverAssistList_connectionID, maneuverAssistList_pedBicycleDetect_bool ? "True" : "False");
-            
-            }
-            else if (signalGroup == 17 && ((curLaneID == 76 && id_id == 1) || (curLaneID == 84 && id_id == 2)))
-            {
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-            }
-            else if (signalGroup == 19 && ((curLaneID == 60 && id_id == 1) || (curLaneID == 82 && id_id == 2) || (curLaneID == 78 && id_id == 3)))
-            {
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-            }
-            else if (signalGroup == 22 && ((curLaneID == 39 && id_id == 1) || (curLaneID == 27 && id_id == 2)))
-            {
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-            }
-            else if (signalGroup == 23 && ((curLaneID == 83 && id_id == 1) || (curLaneID == 86 && id_id == 2)))
-            {
-                parse_msg[0] = state_time_speed_eventState;
-                parse_msg[1] = state_time_speed_timing_minEndTime;
-                break;
-            }
-        }   
-     }
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
+            break;
+        }
+        if(signalGroup == 16 && (((curLaneID == 58) && (id_id == 1)) || ((curLaneID == 76) && (id_id == 1)) || ((curLaneID == 81) && (id_id == 2)) || ((curLaneID == 80) && (id_id == 2)) || ((curLaneID == 31) && (id_id == 3)) || ((curLaneID == 83) && (id_id == 3))))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
+            break;
+        }
+        if (signalGroup == 19 && (((curLaneID == 60) && (id_id == 1)) || ((curLaneID == 78) && (id_id == 2)) || ((curLaneID == 74 && id_id == 3))))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
+            break;
+        }
+        if (signalGroup == 22 && (((curLaneID == 79) && (id_id == 1)) || ((curLaneID == 39) && (id_id == 1)) || ((curLaneID == 82 && id_id == 2)) || ((curLaneID == 24) && (id_id == 2))))
+        {
+            parse_msg[0] = state_time_speed_eventState;
+            parse_msg[1] = state_time_speed_timing_minEndTime;
+            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
+            break;
+        }
+        
+    }
 
-    json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
+    // json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
 
     json_object_put(SPAT);
 

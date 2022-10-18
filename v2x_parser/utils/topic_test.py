@@ -34,8 +34,18 @@ class PubTest:
         self.ekf_euler.angle.z = 30.300
         self.can_record.data = [0, 0, 0, 1, 0, 46]
 
-        self.laneid.data = {60}
-        
+
+        self.laneid.data = {79}
+        '''
+        # SignalGroup[STR,LEF,PED]
+
+                13,14,15
+        22,23,24        16,17,18
+                19,20,21
+        '''
+        '''
+        # KIAPI-3     KIAPI-2     KIAPI-1
+        '''
         self.pub_gps_pos.publish(self.gps_pos)
         self.pub_ekf_euler.publish(self.ekf_euler)
         self.pub_can_record.publish(self.can_record)

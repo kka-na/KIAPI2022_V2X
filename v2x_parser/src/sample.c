@@ -50,15 +50,15 @@ unsigned long long get_clock_time()
 int signalstate(int eventState)
 {
     int temp;
-    if (eventState == 2 or eventState == 3)
+    if (eventState == 3)
     {
         temp = 1;   // red
     }
-    else if (eventState == 5 or eventState == 6)
+    else if ((eventState == 5) || (eventState == 6))
     {
         temp = 2;   //green
     }
-    else if (eventState == 7)
+    else if ((eventState == 7) || (eventState == 8))
     {
         temp = 3;   //yellow
     }
@@ -252,7 +252,7 @@ int main(int argc, char **argv)
     heading = 0;
     velocity = 0;
     gear = 0;
-    curLaneID = 0;    
+    curLaneID = 61;    
     int a = 0;
     int test;
     spinner.start();
@@ -260,12 +260,11 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-
         // 소켓이 연결되지 않은 경우(sockFd == -1) , OBU TCP 소켓 연결 시도
         if (sockFd < 0)
         {
-            sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
-            // sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
+            // sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
+            sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
             storedSize = 0;
             if (sockFd < 0)
             {
@@ -301,16 +300,15 @@ int main(int argc, char **argv)
             // data[0] = eventState, data[1] = timing_minEndTime
             spat_msg.data.resize(2);
             spat_msg.data[0] = signalstate(parse_msg[0]);
-            // spat_msg.data[1] = parse_msg[1] / 10;
             spat_msg.data[1] = parse_msg[1];
             pub_spat_msg.publish(spat_msg);
             
             int temp;
             if (temp != parse_msg[1])
             {
-                printf("Received V2X Signal-------------------\n\n");
-                printf("Current Signal EventState : %d\n\n", parse_msg[0]);
-                printf("Current Signal timing_minEndTime : %d\n",parse_msg[1]);
+                printf(" Received V2X Signal-------------------\n\n");
+                printf(" Current Signal EventState : %d\n\n", parse_msg[0]);
+                printf(" Current Signal timing_minEndTime : %d\n\n",parse_msg[1]);
                 temp = parse_msg[1];
             }
 
