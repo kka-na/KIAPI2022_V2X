@@ -30,7 +30,21 @@ rosrun v2x_parser v2x_parser
 ```
 data[2] = [Current Signal EventState, Current Signal minEndTime] 
 ```
-
+5. Location of Traffic Lights
+* SG = SignalGroup, mN = movementName
+1) Intersection 1, 2
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/08687cb0-a914-4b00-8f4b-40ac39519cfe/Untitled.png)
+2) Intersection 3
+![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9ee418c5-ff33-4967-bd73-9c5f3b77ce4f/Untitled.png)
+6. The Number of Traffic Lights
+```
+if eventState == 3:
+    spat_msg = 1  //  Red
+elif (eventState == 5) or (eventState == 6):
+    spat_msg = 2  //  Green
+elif (eventState == 7) or (eventState == 8):
+    spat_msg = 3  //  Yellow
+```
 ## Result pvd.json
 
 ```
