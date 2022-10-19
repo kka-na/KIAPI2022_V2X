@@ -1,3 +1,4 @@
+from curses import nocbreak
 import rospy
 from geometry_msgs.msg import PoseArray
 
@@ -17,35 +18,35 @@ class MissionParse:
         self.stage1_mission = msg.poses
 
     def planner(self):
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(0.5)
         while not rospy.is_shutdown():
             if(self.stage1_state[0] and not self.stage1_state[1]):
-                self.stage1_nodes_phase1, self.stage2_nodes_phase2 = self.parseMission()
+                self.parseMission()
+                if(len(self.stage1_nodes_phase1) != 0 and len(self.stage1_nodes_phase2) != 0):
+                    self.stage1_state[1] = 1
             elif(self.stage1_state[0] and self.stage1_state[1]):
                 print("Mission Selected")
                 print(self.stage1_nodes_phase1)
                 print(self.stage1_nodes_phase2)
                 break
+            rate.sleep()
         rospy.spin()
 
     def parseMission(self):
-        phase1 = []
-        phase2 = []
-        phase = phase1
-        lat0 = 35.64588122580907
-        # lon0 = 128.40214778762413
-        # h0 = 47.256
-        node_info = {"type":0, "idx":1, "lat":35.64588122580907, "lng":128.40214778762413}
         for node in self.stage1_mission:
-            node_info["type"] = node.orientation.x
-            node_info["idx"] = node.orientation.y
-            node_info["lat"] = node.orientation.z
-            node_info["lng"] = node.orientation.w 
-            phase.append(node_info)
-            if(node.orientation.x == 1.0):
-                phase = phase2
-        return phase1, phase2
-
+            node_info = {"type": int(node.orientation.x), "idx": int(
+                node.orientation.y), "lat": float(node.orientation.z), "lng": float(node.orientation.w)}
+            self.stage1_nodes_phase1.append(node_info)
+            if(int(node.orientation.x) == 1):
+                break
+        for node in self.stage1_mission:
+            if(int(node.orientation.x) == 1):
+                continue
+            node_info = {"type": int(node.orientation.x), "idx": int(
+                node.orientation.y), "lat": float(node.orientation.z), "lng": float(node.orientation.w)}
+            self.stage1_nodes_phase2.append(node_info)
+            if(int(node.orientation.x) == 2):
+                break
 
 
 if __name__ == '__main__':

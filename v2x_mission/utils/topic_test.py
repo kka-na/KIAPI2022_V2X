@@ -43,12 +43,12 @@ class PubTest:
         self.pub_arrive_info.publish(self.arrive_info)
 
     def stage1_mission_publisher(self):
-        for i in range(len(STAGE1_NODES_PHASE1)):
+        for node in STAGE1_NODES_PHASE1:
             pose = Pose()
-            pose.orientation.x = int(STAGE1_NODES_PHASE1[i]["type"])
-            pose.orientation.y = int(STAGE1_NODES_PHASE1[i]["idx"])
-            pose.orientation.z = float(STAGE1_NODES_PHASE1[i]["lat"])
-            pose.orientation.w = float(STAGE1_NODES_PHASE1[i]["lng"])
+            pose.orientation.x = int(node["type"])
+            pose.orientation.y = int(node["idx"])
+            pose.orientation.z = float(node["lat"])
+            pose.orientation.w = float(node["lng"])
             self.stage1_mission.poses.append(pose)
         self.pub_stage1_mission.publish(self.stage1_mission)
 
