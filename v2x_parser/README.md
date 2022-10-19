@@ -33,9 +33,9 @@ data[2] = [Current Signal EventState, Current Signal minEndTime]
 5. Location of Traffic Lights
 * SG = SignalGroup, mN = movementName
 1) Intersection 1, 2
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/08687cb0-a914-4b00-8f4b-40ac39519cfe/Untitled.png)
+https://www.notion.so/SPaT-Message-8fb403d58f224314a670f917b822b8a0#649b440633124f218e31a586a1081c7f
 2) Intersection 3
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/9ee418c5-ff33-4967-bd73-9c5f3b77ce4f/Untitled.png)
+https://www.notion.so/SPaT-Message-8fb403d58f224314a670f917b822b8a0#f87246277a89498d820345b36043c839
 6. The Number of Traffic Lights
 ```
 if eventState == 3:
