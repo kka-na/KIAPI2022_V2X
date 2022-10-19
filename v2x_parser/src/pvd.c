@@ -22,7 +22,7 @@ int fill_j2735_pvd(MessageFrame_t *dst, long _latitude, long _longitude, long _e
     gettimeofday(&tv, NULL);
     char filename_pvd[512];
     long sec_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-    sprintf(filename_pvd, "/home/cvlab/catkin_ws/src/KIAPI_INHA/v2x_parser/log/pvd/pvd_%ld.json", sec_in_mill);
+    sprintf(filename_pvd, "/home/inha/ros_ws/src/KIAPI_INHA/v2x_parser/log/pvd/pvd_%ld.json", sec_in_mill);
 
     json_object *PVD = json_object_new_object();
 
