@@ -25,6 +25,12 @@ catkin_make
 rosrun v2x_parser v2x_parser
 ```
 
+4. ROS Topic
+/spat_mag  ( Float32MultiArray )
+```
+data[2] = [Current Signal EventState, Current Signal minEndTime] 
+```
+
 ## Result pvd.json
 
 ```
