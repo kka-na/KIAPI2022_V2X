@@ -49,7 +49,7 @@ unsigned long long get_clock_time()
 
 int signalstate(int eventState)
 {
-    int temp;
+    int temp = 2;
     if (eventState == 3)
     {
         temp = 1;   // red
