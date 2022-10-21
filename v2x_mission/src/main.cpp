@@ -69,6 +69,7 @@ int main(int argc, char **argv)
             unsigned char *temp_buf = (unsigned char *)buf.c_str();
             MsgHeader *header = (MsgHeader *)temp_buf;
 
+            printf("type checking ! %s",header->message_type);
             if (buf.size() < sizeof(MsgHeader) + header->payload_length)
             {
                 printf("pay size error! buffering... %ld / %ld\n", buf.size(), sizeof(MsgHeader) + header->payload_length);
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
             }
             else if (header->message_type == MessageType::MISSION_LIST_STAGE2)
             {
-                // stg2.RecvMissionStage2(temp_buf);
+                stg2.RecvMissionStage2(temp_buf);
             }
             else if (header->message_type == MessageType::REQUEST_ACK || header->message_type == MessageType::NODE_ACK)
             {
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
             }
             else if (header->message_type == MessageType::ITEM_ACK)
             {
-                // stg2.RecvItemAck(temp_buf);
+                stg2.RecvItemAck(temp_buf);
             }
             else
             {
