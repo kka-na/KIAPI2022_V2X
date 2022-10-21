@@ -46,6 +46,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     // IN PROGRESS
     else if (msg.mission_status == 0x01)
     {
+        printf("in progress if 1,0,0,0 checking\n");
         //[IF] Mission Selection was Accepted,
         if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
