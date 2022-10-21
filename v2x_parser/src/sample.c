@@ -10,6 +10,7 @@
 #include <ros/ros.h>
 #include "std_msgs/Int16MultiArray.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float32.h"
 
 #include "sbg_driver/SbgEkfEuler.h"
 #include "sbg_driver/SbgGpsPos.h"
@@ -28,10 +29,12 @@ void ekfEulerCallback(const sbg_driver::SbgEkfEuler::ConstPtr &msg)
     heading = int(temp / 0.0125);
 }
 
-void canRecordCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
+void carV_Callback(const std_msgs::Float32::ConstPtr &msg)
 {
-    velocity = int((msg->data[5])/0.072);
-    gear = (int)(msg->data[3]);
+    // velocity = int((msg->data[5])/0.072); msg.data
+    velocity = int((msg->data)/0.02);
+    // printf("========================= %d",velocity);
+    // gear = (int)(msg->data[3]);
 }
 
 void curLaneIDCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
@@ -241,7 +244,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber sub_gps_pos = n.subscribe("/sbg/gps_pos", 100, gpsPosCallback);
     ros::Subscriber sub_ekf_euler = n.subscribe("/sbg/ekf_euler", 100, ekfEulerCallback);
-    ros::Subscriber sub_can_record = n.subscribe("/can_record", 100, canRecordCallback);
+    ros::Subscriber sub_car_v = n.subscribe("/car_v", 100, carV_Callback);
     ros::Subscriber sub_cur_laneid = n.subscribe("/current_LaneID", 100, curLaneIDCallback);
 
     ros::Publisher pub_spat_msg = n.advertise<std_msgs::Float32MultiArray>("/spat_msg", 100);
