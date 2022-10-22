@@ -5,7 +5,7 @@ from std_msgs.msg import Int16MultiArray
 class MissionTest:
     def __init__(self):
         rospy.init_node('MissionTest')
-        self.stage1_state_pub = rospy.Publisher('/stage1_state', Int16MultiArray, queue_size=10 )
+        self.stage1_state_pub = rospy.Publisher('/stage2_state', Int16MultiArray, queue_size=10 )
         rospy.Subscriber('/arrive_info', Int16MultiArray, self.arrive_info_cb)
         self.arrive_info = [0,0]
         self.arr = Int16MultiArray()
