@@ -23,12 +23,12 @@ void SetStage1::init()
 
 int SetStage1::RecvMissionStage1(unsigned char *buf)
 {
-    // printf("\n[RecvMissionStage1] start\n");
+    printf("\n[RecvMissionStage1] start\n");
     MissionListStage1 msg = {
         0,
     };
-
     ParseMissionStage1(&msg, buf);
+    
     PrintMissionStage1(&msg);
     PublishMissionStage1(&msg);
 
@@ -37,6 +37,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
 
     if (msg.mission_status == 0x00)
     {
+        printf("%d",msg.mission_list[MISSION_ID].status);
         //[IF] selection available, mission_list[2] : Hard
         if (msg.mission_list[MISSION_ID].status == 0x00)
         {
@@ -46,9 +47,15 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     // IN PROGRESS
     else if (msg.mission_status == 0x01)
     {
-        printf("in progress if 1,0,0,0 checking\n");
+        printf("IN PROGRESS\n");
+
         //[IF] Mission Selection was Accepted,
-        if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
+        if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
+        {
+            cout << "Stage1 Start !" << endl;
+            SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
+        }    
+        else if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
             if (arrive_info[0])
             {
@@ -97,7 +104,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
             SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
         }
         // [IF] Mission Selection was Accepted,
-        else if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
+        else if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
             if (arrive_info[0])
             {
@@ -220,6 +227,7 @@ void SetStage1::PublishMissionStage1(MissionListStage1 *msg)
 
     int route_data_count = 2;
     vector<MissionRouteData> mission_route_data;
+    printf("pub flag1\n");
 
     for (int i = 0; i < msg->mission_route_count; i++)
     {

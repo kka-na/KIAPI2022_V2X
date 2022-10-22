@@ -45,7 +45,7 @@ int SetStage2::RecvMissionStage2(unsigned char *buf)
         stage2_state[0] = int(msg.mission_status);
         if (msg.mission_status == 0x03)
         {
-            cout << "Stage2 Clear!" << endl;
+            // cout << "Stage2 Clear!" << endl;
             clear_cnt += 1;
             if (clear_cnt > 5)
             {
@@ -61,7 +61,7 @@ int SetStage2::RecvMissionStage2(unsigned char *buf)
             }
             if (check(check_arr, 1))
             {
-                cout << "Stage2 Clear!" << endl;
+                // cout << "Stage2 Clear!" << endl;
                 clear_cnt += 1;
                 if (clear_cnt > 5)
                 {
