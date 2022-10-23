@@ -1,4 +1,4 @@
 <launch>
 <!-- V2X LAUNCH -->
-	<node pkg="v2x_parser" type="v2x_parser" name="parser" output="screen" launch-prefix="bash -c 'sleep 3; $0 $@' "/>
+	<node pkg="v2x_parser" type="v2x_parser" name="parser"/>
 </launch>
