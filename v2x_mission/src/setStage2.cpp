@@ -2,8 +2,8 @@
 
 void SetStage2::SetROS(ros::NodeHandle n)
 {
-    mission_stage2_pub = n.advertise<geometry_msgs::PoseArray>("/stage2_mission", 1000);
-    stage2_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage2_state", 1000);
+    mission_stage2_pub = n.advertise<geometry_msgs::PoseArray>("/stage2_test_mission", 1000);
+    stage2_state_pub = n.advertise<std_msgs::Int16MultiArray>("/stage2_test", 1000);
 }
 
 void SetStage2::init()

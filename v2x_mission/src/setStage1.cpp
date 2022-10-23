@@ -35,25 +35,24 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     unsigned char mission_id = msg.mission_list[MISSION_ID].mission_id;
     stage1_state[0] = int(msg.mission_status); // 01234
 
-    // if (msg.mission_status == 0x00)
-    // {
-    //     printf("%d",msg.mission_list[MISSION_ID].status);
-    //     //[IF] selection available, mission_list[2] : Hard
-    //     if (msg.mission_list[MISSION_ID].status == 0x00)
-    //     {
-    //         cout << "Mission Selection" << endl;
-    //         SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
-    //     }
-    // }
-    // IN PROGRESS
-    if (msg.mission_status == 0x01)
+    if (msg.mission_status == 0x00)
     {
-        cout << "Stage1 Start !" << endl;
+        printf("%d",msg.mission_list[MISSION_ID].status);
+        //[IF] selection available, mission_list[2] : Hard
+        if (msg.mission_list[MISSION_ID].status == 0x00)
+        {
+            SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
+        }
+    }
+    // IN PROGRESS
+    else if (msg.mission_status == 0x01)
+    {
+        printf("IN PROGRESS\n");
 
         //[IF] Mission Selection was Accepted,
         if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
-            cout << "Mission Selection" << endl;
+            cout << "Stage1 Start !" << endl;
             SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
         }    
         else if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
@@ -183,7 +182,7 @@ void SetStage1::SendRequest(unsigned char id, unsigned char req)
     msg.header.device_id[2] = 0x06; // team id
 
     msg.mission_id = id;
-    msg.request = req;               // 0x01, 0x02, 0x03 ?
+    msg.request = req;
 
     msg.response = 0x00;
     sprintf(msg.description, "IHU"); // team name
@@ -228,6 +227,7 @@ void SetStage1::PublishMissionStage1(MissionListStage1 *msg)
 
     int route_data_count = 2;
     vector<MissionRouteData> mission_route_data;
+    printf("pub flag1\n");
 
     for (int i = 0; i < msg->mission_route_count; i++)
     {
