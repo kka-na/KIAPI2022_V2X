@@ -46,6 +46,7 @@ private:
     int seq = 0;
     int stage1_state[4] = {0, 0, 0, 0};
     int arrive_info[2] = {0, 0};
+    bool starter = true;
 
     int clear_cnt = 0;
 };
