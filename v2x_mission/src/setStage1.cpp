@@ -44,7 +44,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
         //[IF] Mission Selection was Accepted,
         if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
         {
-            cout << "Stage1 Start !" << endl;
+            cout <<"Stage1 Start !" << endl;
             SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
         }    
         else if (stage1_state[1] && !stage1_state[2] && !stage1_state[3])
@@ -87,44 +87,45 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     }
 
     // TEST
-    else
-    {
-        //[IF] selection available, mission_list[2] : Hard
-        if (msg.mission_list[MISSION_ID].status == 0x00)
-        {
-            cout << "Mission Selection" << endl;
-            SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
-        }
-        // [IF] Mission Selection was Accepted,
-        else if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
-        {
-            if (arrive_info[0])
-            {
-                cout << "Arrived at Deaparture" << endl;
-                SendRequest(mission_id, RequestType::REQ_START_POSITION);
-            }
-        }
-        // [IF] Arrive at Departure Position,
-        else if (stage1_state[1] && stage1_state[2] && !stage1_state[3])
-        {
-            if (arrive_info[1])
-            {
-                cout << "Arrived at Destination" << endl;
-                SendRequest(mission_id, RequestType::REQ_END_POSITION);
-            }
-        }
-        else if (stage1_state[1] && stage1_state[2] && stage1_state[3])
-        {
-            if (clear_cnt == 0)
-                cout << "Stage1 Clear" << endl;
-            clear_cnt += 1;
-            if (clear_cnt > 5)
-            {
-                clear_cnt = 0;
-                init();
-            }
-        }
-    }
+    // else if(msg.mission_status == 0x04)
+    // {
+    //     //[IF] selection available, mission_list[2] : Hard
+    //     if (msg.mission_list[MISSION_ID].status == 0x00)
+    //     {
+    //         cout << "Mission Selection" << endl;
+    //         SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
+    //     }
+    //     // [IF] Mission Selection was Accepted,
+    //     else if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
+    //     {
+    //         if (arrive_info[0])
+    //         {
+    //             cout << "Arrived at Deaparture" << endl;
+    //             SendRequest(mission_id, RequestType::REQ_START_POSITION);
+    //         }
+    //     }
+    //     // [IF] Arrive at Departure Position,
+    //     else if (stage1_state[1] && stage1_state[2] && !stage1_state[3])
+    //     {
+    //         if (arrive_info[1])
+    //         {
+    //             cout << "Arrived at Destination" << endl;
+    //             SendRequest(mission_id, RequestType::REQ_END_POSITION);
+    //         }
+    //     }
+    //     else if (stage1_state[1] && stage1_state[2] && stage1_state[3])
+    //     {
+    //         if (clear_cnt == 0)
+    //             cout << "Stage1 Clear" << endl;
+    //         clear_cnt += 1;
+    //         if (clear_cnt > 5)
+    //         {
+    //             clear_cnt = 0;
+    //             init();
+    //         }
+    //     }
+    // }
+
 
     PublishStage1State();
 
