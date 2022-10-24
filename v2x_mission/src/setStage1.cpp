@@ -10,7 +10,7 @@ void SetStage1::SetROS(ros::NodeHandle n)
 
 void SetStage1::init()
 {
-    cout << "Initialize" << endl;
+    cout << "Initialize_stage1" << endl;
     for (int &i : stage1_state)
     {
         i = 0;

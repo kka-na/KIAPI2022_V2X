@@ -8,7 +8,7 @@ void SetStage2::SetROS(ros::NodeHandle n)
 
 void SetStage2::init()
 {
-    cout << "Initialize" << endl;
+    cout << "Initialize_stage2" << endl;
     stage2_state_set_cnt = 0;
     delete stage2_state;
 }

@@ -56,7 +56,7 @@ int *decode_j2735_uper(MessageFrame_t *dst, char *src, int size, unsigned long c
                                      &asn_DEF_MessageFrame,
                                      (void **)&dst,
                                      src, size, 0, 0);
-    if (ret.code != RC_OK)
+    // if (ret.code != RC_OK)
         // return res;
 
     res = ret.consumed;
@@ -87,38 +87,11 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
 {
     IntersectionState_t intersection = *spat->intersections.list.array[0];
     char *name = (char *)intersection.name->buf;
-    // int id_region = intersection.id.region[0];
     int id_id = intersection.id.id;
-    // int revision = intersection.revision;
     char _status[50];
     sprintf(_status, "%x", intersection.status.buf);
-    // int moy = intersection.moy[0];
-    // int timestamp = intersection.timeStamp[0];
 
-    // time
-    // time_t timer;
-    // struct tm *t;
-    // timer = time(NULL);
-    // t = localtime(&timer);
-    // struct timeval tv;
-    // gettimeofday(&tv, NULL);
-    // char filename_spat[512]; // = "/home/kana/Documents/Project/KIAPI/v2x_parse/json/spat.json";
-    // long sec_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000;
-    // sprintf(filename_spat, "/home/cvlab/catkin_ws/src/KIAPI_INHA/v2x_parser/log/spat/spat_%s_%ld.json", name, sec_in_mill);
-    // json_object *SPAT = json_object_new_object();
-
-    // printf(" %d월 %d일 %dsec\n", t->tm_mon + 1, t->tm_mday, t->tm_sec);
     printf(" %s\n", name);
-
-    // json_object_object_add(SPAT, "name", json_object_new_string(name));
-    // json_object *id = json_object_new_object();
-    // json_object_object_add(id, "region", json_object_new_int(id_region));
-    // json_object_object_add(id, "id", json_object_new_int(id_id));
-    // json_object_object_add(SPAT, "id", json_object_get(id));
-    // json_object_object_add(SPAT, "revision", json_object_new_int(revision));
-    // json_object_object_add(SPAT, "status", json_object_new_string(_status));
-    // json_object_object_add(SPAT, "moy", json_object_new_int(moy));
-    // json_object_object_add(SPAT, "timestamp", json_object_new_int(timestamp));
 
     for (int j = 0; j < intersection.states.list.count; j++)
     {
@@ -127,61 +100,36 @@ int parse_spat(SPAT_t *spat, unsigned long curLaneID)
         int signalGroup = movement.signalGroup;
         int state_time_speed_eventState = movement.state_time_speed.list.array[0]->eventState;
         int state_time_speed_timing_minEndTime = movement.state_time_speed.list.array[0]->timing->minEndTime;
-        // int maneuverAssistList_connectionID = movement.maneuverAssistList->list.array[0]->connectionID;
-        // bool maneuverAssistList_pedBicycleDetect_bool = movement.maneuverAssistList->list.array[0]->pedBicycleDetect;
 
         char *status_name;
-        //sprintf(status_name, "states%d", j);
-
-        // json_object *status = json_object_new_object();
-        // json_object_object_add(status, "movementName", json_object_new_string(movementName));
-        // json_object_object_add(status, "signalGroup", json_object_new_int(signalGroup));
-        // json_object *state_time_speed = json_object_new_object();
-        // json_object_object_add(state_time_speed, "eventState", json_object_new_int(state_time_speed_eventState));
-        // json_object_object_add(state_time_speed, "timing_minEndTime", json_object_new_int(state_time_speed_timing_minEndTime));
-        // json_object_object_add(status, "state-time-speed", json_object_get(state_time_speed));
-        // json_object *maneuverAssistList = json_object_new_object();
-        // json_object_object_add(maneuverAssistList, "connectionID", json_object_new_int(maneuverAssistList_connectionID));
-        // json_object_object_add(maneuverAssistList, "pedBicycleDetect", json_object_new_boolean(maneuverAssistList_pedBicycleDetect_bool));
-        // json_object_object_add(status, "maneuverAssistList", json_object_get(maneuverAssistList));
-        // json_object_object_add(SPAT, status_name, json_object_get(status));
 
         if(signalGroup == 13 && (((curLaneID == 60) && (id_id == 1)) || ((curLaneID == 40) && (id_id == 2)) || ((curLaneID) == 25 && (id_id == 3))))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
-            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
             break;
         }
         if(signalGroup == 16 && (((curLaneID == 57) && (id_id == 1)) || ((curLaneID == 75) && (id_id == 1)) || ((curLaneID == 80) && (id_id == 2)) || ((curLaneID == 79) && (id_id == 2)) || ((curLaneID == 31) && (id_id == 3)) || ((curLaneID == 82) && (id_id == 3))))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
-            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
             break;
         }
         if (signalGroup == 19 && (((curLaneID == 59) && (id_id == 1)) || ((curLaneID == 77) && (id_id == 2)) || ((curLaneID == 73 && id_id == 3))))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
-            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
             break;
         }
         if (signalGroup == 22 && (((curLaneID == 78) && (id_id == 1)) || ((curLaneID == 39) && (id_id == 1)) || ((curLaneID == 81 && id_id == 2)) || ((curLaneID == 24) && (id_id == 2))))
         {
             parse_msg[0] = state_time_speed_eventState;
             parse_msg[1] = state_time_speed_timing_minEndTime;
-            printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
+            // printf(" %s, %d, %d, %d\n", movementName, signalGroup, state_time_speed_eventState, state_time_speed_timing_minEndTime);
             break;
         }
         
     }
 
-    // json_object_to_file_ext(filename_spat, json_object_get(SPAT), JSON_C_TO_STRING_PRETTY);
-
-    // json_object_put(SPAT);
-
-    // printf("SPAT Logged\n");
-    
     return 0;
 }
