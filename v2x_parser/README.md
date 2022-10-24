@@ -25,6 +25,30 @@ catkin_make
 rosrun v2x_parser v2x_parser
 ```
 
+4. ROS Topic
+/spat_mag  ( Float32MultiArray )
+```
+data[2] = [Current Signal EventState, Current Signal minEndTime] 
+```
+5. Location of Traffic Lights
+* SG = SignalGroup, mN = movementName
+5-1) Intersection 1, 2
+
+![spat1](https://user-images.githubusercontent.com/94699295/196671750-543c9304-70c5-4639-8e87-b7325a5a3404.png)
+
+5-2) Intersection 3
+
+![spat2](https://user-images.githubusercontent.com/94699295/196671776-70237199-f28a-4881-a1e9-2770dadb20af.png)
+
+6. The Number of Traffic Lights
+```
+if eventState == 3:
+    spat_msg = 1  //  Red
+elif (eventState == 5) or (eventState == 6):
+    spat_msg = 2  //  Green
+elif (eventState == 7) or (eventState == 8):
+    spat_msg = 3  //  Yellow
+```
 ## Result pvd.json
 
 ```

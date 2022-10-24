@@ -1,0 +1,4 @@
+<launch>
+<!-- V2X LAUNCH -->
+	<node pkg="v2x_mission" type="v2x_mission" name="mission" output="screen" launch-prefix="bash -c 'sleep 3; $0 $@' "/>
+</launch>

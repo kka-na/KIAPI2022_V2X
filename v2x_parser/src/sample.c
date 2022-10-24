@@ -10,6 +10,7 @@
 #include <ros/ros.h>
 #include "std_msgs/Int16MultiArray.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float32.h"
 
 #include "sbg_driver/SbgEkfEuler.h"
 #include "sbg_driver/SbgGpsPos.h"
@@ -28,10 +29,12 @@ void ekfEulerCallback(const sbg_driver::SbgEkfEuler::ConstPtr &msg)
     heading = int(temp / 0.0125);
 }
 
-void canRecordCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
+void carV_Callback(const std_msgs::Float32::ConstPtr &msg)
 {
-    velocity = int((msg->data[5])/0.072);
-    gear = (int)(msg->data[3]);
+    // velocity = int((msg->data[5])/0.072); msg.data
+    velocity = int((msg->data)/0.02);
+    // printf("========================= %d",velocity);
+    // gear = (int)(msg->data[3]);
 }
 
 void curLaneIDCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
@@ -49,7 +52,7 @@ unsigned long long get_clock_time()
 
 int signalstate(int eventState)
 {
-    int temp;
+    int temp = 2;
     if (eventState == 3)
     {
         temp = 1;   // red
@@ -241,7 +244,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber sub_gps_pos = n.subscribe("/sbg/gps_pos", 100, gpsPosCallback);
     ros::Subscriber sub_ekf_euler = n.subscribe("/sbg/ekf_euler", 100, ekfEulerCallback);
-    ros::Subscriber sub_can_record = n.subscribe("/can_record", 100, canRecordCallback);
+    ros::Subscriber sub_car_v = n.subscribe("/car_v", 100, carV_Callback);
     ros::Subscriber sub_cur_laneid = n.subscribe("/current_LaneID", 100, curLaneIDCallback);
 
     ros::Publisher pub_spat_msg = n.advertise<std_msgs::Float32MultiArray>("/spat_msg", 100);
@@ -263,8 +266,8 @@ int main(int argc, char **argv)
         // 소켓이 연결되지 않은 경우(sockFd == -1) , OBU TCP 소켓 연결 시도
         if (sockFd < 0)
         {
-            // sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
-            sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
+            sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
+            // sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
             storedSize = 0;
             if (sockFd < 0)
             {
