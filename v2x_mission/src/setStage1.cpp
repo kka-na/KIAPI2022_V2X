@@ -95,6 +95,7 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     else
     {
         printf("WAITING\n");
+        return 0;
     }
 
     PublishMissionStage1(&msg);
@@ -238,12 +239,13 @@ void SetStage1::PublishStage1State()
 
 void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
 {
-    cout<<"callback"<<int(msg->data[0])<<" "<<int(msg->data[1])<<endl;
     // std_msgs/Int16MultiArray/data
     //  data[0] : Departure, if arrived == 1
     //  data[1] : Destination, if arrived == 1
     arrive_info[0] = int(msg->data[0]);
     arrive_info[1] = int(msg->data[1]);
+    cout<<"callback"<<int(msg->data[0])<<" "<<int(msg->data[1])<<endl;
+
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
