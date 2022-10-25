@@ -93,7 +93,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                printf("Recv unkown message\n");
+                printf("Recv unknown message\n");
                 buf.clear();
             }
 

@@ -10,7 +10,7 @@ void SetStage1::SetROS(ros::NodeHandle n)
 
 void SetStage1::init()
 {
-    cout << "Initialize" << endl;
+    cout << "Initialize_stage1" << endl;
     for (int &i : stage1_state)
     {
         i = 0;
@@ -33,13 +33,20 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
     };
     ParseMissionStage1(&msg, buf);
     PrintMissionStage1(&msg);
-    PublishMissionStage1(&msg);
+    
+   
 
+    //rintf("%d\n",buf);
     unsigned char mission_id = msg.mission_list[MISSION_ID].mission_id;
     stage1_state[0] = int(msg.mission_status); // 01234
 
     // IN PROGRESS
-    if (msg.mission_status == 0x01)
+    cout<<"arrive_info"<<arrive_info[0]<<" "<<arrive_info[1]<<endl;
+    if(msg.mission_status == 0x00){
+        cout<<"0x00"<<endl;
+        return 0;
+    }
+    else if (msg.mission_status == 0x01)
     {
         //[IF] Mission Selection was Accepted,
         if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
@@ -85,48 +92,12 @@ int SetStage1::RecvMissionStage1(unsigned char *buf)
             }
         }
     }
+    else
+    {
+        printf("WAITING\n");
+    }
 
-    // TEST
-    // else if(msg.mission_status == 0x04)
-    // {
-    //     //[IF] selection available, mission_list[2] : Hard
-    //     if (msg.mission_list[MISSION_ID].status == 0x00)
-    //     {
-    //         cout << "Mission Selection" << endl;
-    //         SendRequest(mission_id, RequestType::REQ_SELECT_MISSION);
-    //     }
-    //     // [IF] Mission Selection was Accepted,
-    //     else if (!stage1_state[1] && !stage1_state[2] && !stage1_state[3])
-    //     {
-    //         if (arrive_info[0])
-    //         {
-    //             cout << "Arrived at Deaparture" << endl;
-    //             SendRequest(mission_id, RequestType::REQ_START_POSITION);
-    //         }
-    //     }
-    //     // [IF] Arrive at Departure Position,
-    //     else if (stage1_state[1] && stage1_state[2] && !stage1_state[3])
-    //     {
-    //         if (arrive_info[1])
-    //         {
-    //             cout << "Arrived at Destination" << endl;
-    //             SendRequest(mission_id, RequestType::REQ_END_POSITION);
-    //         }
-    //     }
-    //     else if (stage1_state[1] && stage1_state[2] && stage1_state[3])
-    //     {
-    //         if (clear_cnt == 0)
-    //             cout << "Stage1 Clear" << endl;
-    //         clear_cnt += 1;
-    //         if (clear_cnt > 5)
-    //         {
-    //             clear_cnt = 0;
-    //             init();
-    //         }
-    //     }
-    // }
-
-
+    PublishMissionStage1(&msg);
     PublishStage1State();
 
     if (msg.mission_list != nullptr)
@@ -220,7 +191,7 @@ void SetStage1::PublishMissionStage1(MissionListStage1 *msg)
 
     int route_data_count = 2;
     vector<MissionRouteData> mission_route_data;
-    printf("pub flag1\n");
+    // printf("pub flag1\n");
 
     for (int i = 0; i < msg->mission_route_count; i++)
     {
@@ -264,13 +235,15 @@ void SetStage1::PublishStage1State()
     stage1_state_pub.publish(arr);
 }
 
+
 void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &msg)
 {
+    cout<<"callback"<<int(msg->data[0])<<" "<<int(msg->data[1])<<endl;
     // std_msgs/Int16MultiArray/data
     //  data[0] : Departure, if arrived == 1
     //  data[1] : Destination, if arrived == 1
-    arrive_info[0] = msg->data[0];
-    arrive_info[1] = msg->data[1];
+    arrive_info[0] = int(msg->data[0]);
+    arrive_info[1] = int(msg->data[1]);
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -279,12 +252,12 @@ void SetStage1::arriveInfoCallback(const std_msgs::Int16MultiArray::ConstPtr &ms
 
 void SetStage1::ParseMissionStage1(MissionListStage1 *msg, unsigned char *buf)
 {
-    if (msg == nullptr)
+    if (msg == nullptr )
     {
         printf("[ParseMissionStage1] fail : msg == nullptr\n");
         return;
     }
-
+    
     size_t copy_len_1 = sizeof(MissionListStage1) - sizeof(MissionListStage1::mission_list) - sizeof(MissionListStage1::mission_route_list);
     memmove(msg, buf, copy_len_1);
     size_t copy_len_2 = sizeof(MissionData) * msg->mission_count;
@@ -293,6 +266,7 @@ void SetStage1::ParseMissionStage1(MissionListStage1 *msg, unsigned char *buf)
     size_t copy_len_3 = sizeof(MissionRouteData) * msg->mission_route_count;
     msg->mission_route_list = new MissionRouteData[msg->mission_route_count];
     memmove(msg->mission_route_list, &buf[copy_len_1 + copy_len_2], copy_len_3);
+    
 }
 
 void SetStage1::ParseRequestAck(Request_Ack *msg, unsigned char *buf)

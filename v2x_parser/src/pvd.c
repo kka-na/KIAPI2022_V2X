@@ -210,6 +210,6 @@ int fill_j2735_pvd(MessageFrame_t *dst, long _latitude, long _longitude, long _e
 
     // json_object_to_file_ext(filename_pvd, json_object_get(PVD), JSON_C_TO_STRING_PRETTY);
 
-    printf("PVD Logged\n");
+    printf(" PVD Logged\n");
     return 0;
 }

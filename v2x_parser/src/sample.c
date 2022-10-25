@@ -33,7 +33,6 @@ void carV_Callback(const std_msgs::Float32::ConstPtr &msg)
 {
     // velocity = int((msg->data[5])/0.072); msg.data
     velocity = int((msg->data)/0.02);
-    // printf("========================= %d",velocity);
     // gear = (int)(msg->data[3]);
 }
 
@@ -255,11 +254,14 @@ int main(int argc, char **argv)
     heading = 0;
     velocity = 0;
     gear = 0;
-    curLaneID = 61;    
+    curLaneID = 0;    
     int a = 0;
     int test;
     spinner.start();
     int *parse_msg;
+
+    std_msgs::Float32MultiArray spat_msg;
+
 
     while (ros::ok())
     {
@@ -285,7 +287,7 @@ int main(int argc, char **argv)
             (tx_v2i_pvd(sockFd, &txPvd) < 0))
         {
             // OBU와 TCP 연결이 끊어진 경우, 연결 재시도
-            printf("Reconnecting\n");
+            // printf("Reconnecting\n");
             close(sockFd);
             sockFd = -1;
             continue;
@@ -298,8 +300,6 @@ int main(int argc, char **argv)
             MessageFrame_t *msgFrame = NULL;
             parse_msg = decode_j2735_uper(msgFrame, rxUperBuffer, uperSize, curLaneID);
 
-            std_msgs::Float32MultiArray spat_msg;
-
             // data[0] = eventState, data[1] = timing_minEndTime
             spat_msg.data.resize(2);
             spat_msg.data[0] = signalstate(parse_msg[0]);
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
             {
                 printf(" Received V2X Signal-------------------\n\n");
                 printf(" Current Signal EventState : %d\n\n", parse_msg[0]);
-                printf(" Current Signal timing_minEndTime : %d\n\n",parse_msg[1]);
+                printf(" Current Signal timing_minEndTime : %d\n",parse_msg[1]);
                 temp = parse_msg[1];
             }
 

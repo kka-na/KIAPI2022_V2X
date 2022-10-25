@@ -52,5 +52,6 @@ if __name__ == '__main__':
     t = MissionTest()
     try:
         t.updateState()
-    except rospy.ROSInternalException:
-        pass
+    except rospy.ROSInternalException as e:
+        # pass
+        print(e)

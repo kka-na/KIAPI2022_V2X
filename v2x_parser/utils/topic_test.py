@@ -17,14 +17,14 @@ class PubTest:
         self.pub_car_v = rospy.Publisher(
             '/car_v', Float32, queue_size=1)
 
-        # self.pub_laneid = rospy.Publisher(
-        #     '/current_LaneID', Int16MultiArray, queue_size=1)
+        self.pub_laneid = rospy.Publisher(
+            '/current_LaneID', Int16MultiArray, queue_size=1)
 
         # self.gps_pos = SbgGpsPos()
         # self.ekf_euler = SbgEkfEuler()
         self.car_v = Float32()
         
-        # self.laneid = Int16MultiArray()
+        self.laneid = Int16MultiArray()
 
     def publisher(self):
         # self.gps_pos.latitude = 37.450585
@@ -36,7 +36,7 @@ class PubTest:
         self.car_v.data = 15.0
 
 
-        # self.laneid.data = {79}
+        self.laneid.data = {60}
         '''
         # SignalGroup[STR,LEF,PED]
 
@@ -49,9 +49,9 @@ class PubTest:
         '''
         # self.pub_gps_pos.publish(self.gps_pos)
         # self.pub_ekf_euler.publish(self.ekf_euler)
-        # self.pub_car_v.publish(self.car_v)
+        self.pub_car_v.publish(self.car_v)
 
-        # self.pub_laneid.publish(self.laneid)
+        self.pub_laneid.publish(self.laneid)
 
 if __name__ == '__main__':
     pt = PubTest()
