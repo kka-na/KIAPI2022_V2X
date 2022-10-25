@@ -268,8 +268,8 @@ int main(int argc, char **argv)
         // 소켓이 연결되지 않은 경우(sockFd == -1) , OBU TCP 소켓 연결 시도
         if (sockFd < 0)
         {
-            // sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
-            sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
+            sockFd = connect_obu_uper_tcp("192.168.10.10",23000);    // OBU
+            // sockFd = connect_obu_uper_tcp("118.45.183.36", 23000);  // TEST Server
             storedSize = 0;
             if (sockFd < 0)
             {
