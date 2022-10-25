@@ -14,7 +14,7 @@ using namespace std;
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/Pose.h"
 
-#define MISSION_ID 2
+#define MISSION_ID 0
 #define DISPLAY_PACKET false
 
 class SetStage1
